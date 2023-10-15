@@ -1,0 +1,7 @@
+pandas
+openpyxl
+Pillow
+jupyter
+matplotlib
+scikit-learn
+dash
