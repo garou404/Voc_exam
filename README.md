@@ -1,0 +1,3 @@
+This is a small personal project to help me learn english.
+The goal is to build a quiz which asks me about some vocabulary I have in an excel file.
+Each word has a coefficient which is the duration between the next interrogation, If I wrote the right answer the coefficient double otherwise it stays the same. So if I can't remember a word it will ask me about it the next day until I remember it correctly.
