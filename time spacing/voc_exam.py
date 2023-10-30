@@ -53,7 +53,7 @@ def iteration(data, file_name, size):
             count +=1
             indexes.append(random_index)
         random_index = random.randint(0, data.shape[0] -1)
-    selected = df.loc[indexes]#selection aléatoire des éléments
+    selected = data.loc[indexes]#selection aléatoire des éléments
     print(indexes)
     for id in selected.index:
         print(id)
@@ -72,17 +72,29 @@ def iteration(data, file_name, size):
         else:
             print(selected["date"][id] + datetime.timedelta(days=1))
             selected["date"][id] = selected["date"][id] + datetime.timedelta(days=1)
-    df.loc[indexes] = selected
+    data.loc[indexes] = selected
     #df['date'] = datetime.datetime.today().date()
-    df.to_excel(file_name, index=False, header=False)
+    data.to_excel(file_name, index=False, header=False)
 
 def add_words(df:pd.DataFrame) ->pd.DataFrame:
     print("test")
 
+def get_test_series(data, size) ->pd.DataFrame:
+    selected = pd.DataFrame()
+    indexes = []
+    random_index = random.randint(0, data.shape[0] - 1)
+    count = 0
+    while count != size:
+        if (indexes.count(random_index) == 0) & (data['date'][random_index] == datetime.datetime.now().date()):
+            count += 1
+            indexes.append(random_index)
+        random_index = random.randint(0, data.shape[0] - 1)
+    selected = data.loc[indexes]  # selection aléatoire des éléments
+    return selected
 
-df = clean_data(file)
-df['date'] = upload_date(df)
-iteration(df, file, 30)# manque mettre la date de demain si on échoue
+#df = clean_data(file)
+#df['date'] = upload_date(df)
+#iteration(df, file, 30)# manque mettre la date de demain si on échoue
 
 #rajouter du code: si le fichier est ouvert dit de le fermer
 
