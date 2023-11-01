@@ -2,74 +2,84 @@ from dash import Dash, html, dash_table, dcc, callback, Output, Input, State, ct
 import pandas as pd
 import plotly.express as px
 import datetime
-today = datetime.datetime.now().date()
-index = 0
-data = [["lurk", "se cacher/se tapir/roder", 1, today], ["stumbling", "qui trébuche", 2, today]]
-columns = ['question', 'answer', 'interval', 'date']
-words = pd.DataFrame(data, columns=columns)
+from voc_exam import get_test_series, upload_date, clean_data
 
-row = words.loc[index]
+ # data loading
+file = 'words_test.xlsx'
+
+df = clean_data('words_test.xlsx') # à améliorer
+df['date'] = upload_date(df)
+print(df)
+index = 0
+size = 0
 
 # Initialize the app
 app = Dash(__name__)
 
 # App layout
 app.layout = html.Div([
-    html.Div(children='First app with data'),
-    html.Hr(),
-    html.Div(id='question', children=row['question']),
-    dcc.Input(id="answer", type="text", placeholder="", style={'marginRight':'10px'}),
-    html.Button('Submit', id='submit-val'),
-    html.Div(id='correction'),
-    html.Div(id='test2'),
-    html.Button('Yes', id='right-button'),
-    html.Button('No', id='wrong-button'),
+    html.Div([
+        dcc.Input(id="serie-size", type="text", value=""),
+        html.Button(id='start-button', n_clicks=0, children='Start series'),
+    ], id='quiz-starter'),
+    html.Div([
+
+    ], id='quiz-container')
 ])
 
+@callback(Output('quiz-container', 'children'),
+          Input('start-button', 'n_clicks'),
+          State('serie-size', 'value'),
+          prevent_initial_call=True)
+def start_quiz(n_clicks, serie_size):
+    global df
+    global size
+    print('test')
+    print(df)
+    print(df.dtypes)
+    print(type(serie_size))
+    df = get_test_series(df, int(serie_size))
+    print('test 2')
+    size = serie_size
+    print('test 3')
+    row = df.iloc[index]
+    print('test 4')
+    quiz_layout = html.Div([
+        html.Div(row['question']),
+        dcc.Input(type='text'),
+        html.Button(id='show-answer', children='show answer'),
+        html.Div(row['answer']),
+        html.Button(id='right-answer-button', children='Y'),
+        html.Button(id='wrong-answer-button', children='N'),
+    ], id='test')
+    return quiz_layout
 
-@callback(
-    Output(component_id='correction', component_property='children', allow_duplicate=True),
-    Input('submit-val', 'n_clicks'),
-    State('answer', 'value'),
-    prevent_initial_call=True
-)
-#--------------------------------------------------------------------------------
-#                      function to print the answer
-#--------------------------------------------------------------------------------
-def update_output(n_clicks, value):
-    print(n_clicks)
+
+@callback(Output('test', 'children'),
+          Input('right-answer-button', 'n_clicks'),
+          Input('wrong-answer-button', 'n_clicks'),
+          prevent_initial_call=True)
+def display_next_question(n_clicks_right, n_clicks_wrong):
+    global index
+    global df
+    global size
+    print(type(size))
+    print(type(index))
+    row = df.iloc[index]
+    if str(index) == size:
+        index = 0
+        size = 0
+        return html.Div(['serie complete'])
+    quiz_layout = html.Div([
+        html.Div(row['question']),
+        dcc.Input(type='text'),
+        html.Button(id='show-answer', children='show answer'),
+        html.Div(row['answer']),
+        html.Button(id='right-answer-button', children='Y'),
+        html.Button(id='wrong-answer-button', children='N'),
+    ], id='test')
     index += 1
-    return row['answer']
-
-
-@callback(
-    Output('question', 'children'),
-    Output(component_id='correction', component_property='children'),
-    Input('right-button', 'n_clicks'),
-    Input('wrong-button', 'n_clicks'),
-
-    )
-#--------------------------------------------------------------------------------
-#                      function to indicate if the answer is right or not
-#--------------------------------------------------------------------------------
-def update_output_yes(b1, b2):
-    triggered_id = ctx.triggered_id
-    row = words.loc[index]
-    if triggered_id == 'right-button':
-        print('yes')
-    elif triggered_id == 'wrong-button':
-        print('no')
-        print(row['question'], row['answer'])
-    return row['question'], row['answer']
-
-#--------------------------------------------------------------------------------
-#                      function which return a row of the data
-#--------------------------------------------------------------------------------
-
-#--------------------------------------------------------------------------------
-#                      function which replace the old row with the new one updated
-#--------------------------------------------------------------------------------
-
+    return quiz_layout
 # Run the app
 if __name__ == '__main__':
     app.run(debug=True)
