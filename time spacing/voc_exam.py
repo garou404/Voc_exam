@@ -80,7 +80,6 @@ def add_words(df:pd.DataFrame) ->pd.DataFrame:
     print("test")
 
 def get_test_series(data, size) ->pd.DataFrame:
-    print('function')
     selected = pd.DataFrame()
     indexes = []
     random_index = random.randint(0, data.shape[0] - 1)
@@ -91,8 +90,19 @@ def get_test_series(data, size) ->pd.DataFrame:
             indexes.append(random_index)
         random_index = random.randint(0, data.shape[0] - 1)
     selected = data.loc[indexes]  # selection aléatoire des éléments
-    print('function')
     return selected
+
+def update_row(row, result):
+    if (result == 1):
+        # change interval
+        row["interval"][id] = row["interval"][id] * 2
+        # add interval * days to the current date
+        row["date"][id] = row["date"][id] + datetime.timedelta(
+            days=row["interval"][id].item())  # marche pas visiblement
+    else:
+        print(row["date"][id] + datetime.timedelta(days=1))
+        row["date"][id] = row["date"][id] + datetime.timedelta(days=1)
+    return row
 
 #df = clean_data(file)
 #df['date'] = upload_date(df)
