@@ -4,7 +4,7 @@ import random
 import datetime
 import csv
 
-file = 'words_test.xlsx'
+file = 'words_test_test.xlsx'
 # Dataset cleaning function
 def clean_data(file_name)->pd.DataFrame:
     data = pd.read_excel(file_name, index_col=0, header=None)
@@ -76,10 +76,10 @@ def iteration(data, file_name, size):
     #df['date'] = datetime.datetime.today().date()
     data.to_excel(file_name, index=False, header=False)
 
-def add_words(df:pd.DataFrame) ->pd.DataFrame:
+def add_words(question, answer) ->pd.DataFrame:
     print("test")
 
-def get_test_series(data, size) ->pd.DataFrame:
+def get_series(data, size) ->pd.DataFrame:
     selected = pd.DataFrame()
     indexes = []
     random_index = random.randint(0, data.shape[0] - 1)
@@ -95,14 +95,24 @@ def get_test_series(data, size) ->pd.DataFrame:
 def update_row(row, result):
     if (result == 1):
         # change interval
-        row["interval"][id] = row["interval"][id] * 2
+        row.at[0, 'interval'] = row.at[0, 'interval'] * 2
         # add interval * days to the current date
-        row["date"][id] = row["date"][id] + datetime.timedelta(
-            days=row["interval"][id].item())  # marche pas visiblement
+        row.at[0, 'date'] = row.at[0, 'date'] + datetime.timedelta(days=row.at[0, 'interval'].item())
     else:
         print(row["date"][id] + datetime.timedelta(days=1))
-        row["date"][id] = row["date"][id] + datetime.timedelta(days=1)
+        row.at[0, 'date'] = row.at[0, 'date'] + datetime.timedelta(days=1)
     return row
+
+def save_series(df, df_temp):
+    df_temp.set_index('index')
+    df.update(df_temp)
+    return df
+
+def get_dataframe(size):
+    df = clean_data('words_test_test.xlsx')
+    df['date'] = upload_date(df)
+    df_series = get_series(df, size)
+    return df_series
 
 #df = clean_data(file)
 #df['date'] = upload_date(df)
