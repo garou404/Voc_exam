@@ -105,6 +105,7 @@ def update_row(row, result):
 
 def save_series(df, df_temp):
     df_temp.set_index('index')
+    print(df_temp)
     df.update(df_temp)
     return df
 

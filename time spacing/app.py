@@ -30,14 +30,15 @@ app.layout = html.Div([
           prevent_initial_call=True)
 def start_quiz(n_clicks, serie_size):
     global df_tempo
-    print('test1')
     df_tempo = get_dataframe(int(serie_size))
-    print(df_tempo)
     df_tempo['asked'] = False
     df_tempo['answered'] = False
-    df_tempo.at[0, 'asked'] = True
+    df_tempo.iloc[0, df_tempo.columns.get_loc('asked')] = True
+    print('test1')
     condition = (df_tempo['answered'] == False) & (df_tempo['asked'] == True)
-    question = df_tempo.loc[condition, 'question'][0]
+    print(condition)
+    question = df_tempo.loc[condition, 'question']
+    print(question)
     print('test2')
     quiz_layout = html.Div([
         html.Div(question),
@@ -55,9 +56,13 @@ def start_quiz(n_clicks, serie_size):
     prevent_initial_call=True)
 def show_answer(n_clicks):
     global df_tempo
+    print(df_tempo)
     condition = (df_tempo['answered'] == False) & (df_tempo['asked'] == True)
+    print(condition)
     selected_indices = df_tempo.loc[df_tempo['answered'] == False].index.tolist()
+    print(selected_indices)
     answer = df_tempo.loc[condition, 'answer'][selected_indices[0]]
+    print(answer)
     return answer
 
 @callback(Output('test', 'children'),
