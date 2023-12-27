@@ -2,12 +2,11 @@ from dash import Dash, html, dash_table, dcc, callback, Output, Input, State, ct
 import pandas as pd
 import plotly.express as px
 import datetime
-from voc_exam import get_dataframe, upload_date, clean_data, update_row
+from voc_exam import get_dataframe, upload_date, clean_data, update_row, save_series, get_series
 
  # data loading
 file = 'words_test_test.xlsx'
 
-#df = clean_data('words_test_test.xlsx') # à améliorer
 df_tempo = pd.DataFrame()
 
 # Initialize the app
@@ -20,7 +19,6 @@ app.layout = html.Div([
         html.Button(id='start-button', n_clicks=0, children='Start series'),
     ], id='quiz-starter'),
     html.Div([
-
     ], id='quiz-container')
 ])
 
@@ -30,25 +28,13 @@ app.layout = html.Div([
           prevent_initial_call=True)
 def start_quiz(n_clicks, serie_size):
     global df_tempo
-    df_tempo = get_dataframe(int(serie_size))
+    df_tempo = get_series(get_dataframe(), int(serie_size))
     df_tempo['asked'] = False
     df_tempo['answered'] = False
     df_tempo.iloc[0, df_tempo.columns.get_loc('asked')] = True
-    print('test1')
     condition = (df_tempo['answered'] == False) & (df_tempo['asked'] == True)
-    print(condition)
     question = df_tempo.loc[condition, 'question']
-    print(question)
-    print('test2')
-    quiz_layout = html.Div([
-        html.Div(question),
-        dcc.Input(type='text'),
-        html.Button(id='show-answer', children='show answer'),
-        html.Div(id='answer-label'),
-        html.Button(id='right-answer-button', children='Y'),
-        html.Button(id='wrong-answer-button', children='N'),
-    ], id='test')
-    return quiz_layout
+    return get_quiz_layout(question)
 
 @callback(
     Output('answer-label', 'children'),
@@ -56,16 +42,11 @@ def start_quiz(n_clicks, serie_size):
     prevent_initial_call=True)
 def show_answer(n_clicks):
     global df_tempo
-    print(df_tempo)
     condition = (df_tempo['answered'] == False) & (df_tempo['asked'] == True)
-    print(condition)
-    selected_indices = df_tempo.loc[df_tempo['answered'] == False].index.tolist()
-    print(selected_indices)
-    answer = df_tempo.loc[condition, 'answer'][selected_indices[0]]
-    print(answer)
+    answer = df_tempo.loc[condition, 'answer']
     return answer
 
-@callback(Output('test', 'children'),
+@callback(Output('quiz_layout', 'children'),
           Input('right-answer-button', 'n_clicks'),
           Input('wrong-answer-button', 'n_clicks'),
           State('answer-label', 'children'),
@@ -73,32 +54,34 @@ def show_answer(n_clicks):
 def display_next_question(n_clicks_right, n_clicks_wrong, answer):
     global df_tempo
     condition = (df_tempo['answered'] == False) & (df_tempo['asked'] == True)
+
     if ctx.triggered_id == 'right-answer-button': # update the interval and the date
-        print('yes')
-        print(df_tempo.loc[condition].head(10).to_string())
         df_tempo.update(update_row(df_tempo[condition], 1))
-        print(df_tempo.head(10).to_string())
-        df_tempo.loc[condition, 'answered'] = True
     else:
-        print('no')
-        df_tempo.loc[condition, 'answered'] = True
+        df_tempo.update(update_row(df_tempo[condition], 0))
+    df_tempo.loc[condition, 'answered'] = True
+
     if len(df_tempo['answered'].unique()) == 1: # end of serie
-        global df
+        df = get_dataframe()
+        save_series(df, df_tempo)
         return html.Div(['serie complete'])
-    cond = (df_tempo['asked'] == False)
-    new_selected_indices = df_tempo.loc[cond].index.tolist()
-    df_tempo.loc[cond & (df_tempo.index == new_selected_indices[0]), 'asked'] = True
-    condition = (df_tempo['answered'] == False) & (df_tempo['asked'] == True)
-    question = df_tempo.loc[condition, 'question'][new_selected_indices[0]]
+
+    result = df_tempo.loc[df_tempo['asked'] == False]
+    result.iloc[0, result.columns.get_loc('asked')] = True
+    df_tempo.update(result)
+    question = result.iloc[0, result.columns.get_loc('question')]
+    return get_quiz_layout(question)
+
+
+def get_quiz_layout(input_text):
     quiz_layout = html.Div([
-        html.Div(question),
-        #html.Div('text'),
+        html.Div(input_text),
         dcc.Input(type='text'),
         html.Button(id='show-answer', children='show answer'),
         html.Div(id='answer-label'),
         html.Button(id='right-answer-button', children='Y'),
         html.Button(id='wrong-answer-button', children='N'),
-    ], id='test')
+    ], id='quiz_layout')
     return quiz_layout
 
 # Run the app

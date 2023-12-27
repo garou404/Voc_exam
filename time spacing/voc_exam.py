@@ -80,6 +80,10 @@ def add_words(question, answer) ->pd.DataFrame:
     print("test")
 
 def get_series(data, size) ->pd.DataFrame:
+    print(data.shape[0])
+    print(size)
+    if data.shape[0] < size:
+        raise Exception('serie size superior than data rows')
     selected = pd.DataFrame()
     indexes = []
     random_index = random.randint(0, data.shape[0] - 1)
@@ -93,27 +97,28 @@ def get_series(data, size) ->pd.DataFrame:
     return selected
 
 def update_row(row, result):
+    y_axis_date = row.columns.get_loc('date')
     if (result == 1):
         # change interval
-        row.at[0, 'interval'] = row.at[0, 'interval'] * 2
+        y_axis_interval = row.columns.get_loc('interval')
+        row.iloc[0, y_axis_interval] = row.iloc[0, y_axis_interval] * 2
         # add interval * days to the current date
-        row.at[0, 'date'] = row.at[0, 'date'] + datetime.timedelta(days=row.at[0, 'interval'].item())
+        row.iloc[0, y_axis_date] = row.iloc[0, y_axis_date] + datetime.timedelta(days=row.iloc[0, y_axis_interval].item())
     else:
-        print(row["date"][id] + datetime.timedelta(days=1))
-        row.at[0, 'date'] = row.at[0, 'date'] + datetime.timedelta(days=1)
+        row.iloc[0, y_axis_date] = row.iloc[0, y_axis_date] + datetime.timedelta(days=1)
     return row
 
 def save_series(df, df_temp):
-    df_temp.set_index('index')
-    print(df_temp)
-    df.update(df_temp)
-    return df
-
-def get_dataframe(size):
     df = clean_data('words_test_test.xlsx')
     df['date'] = upload_date(df)
-    df_series = get_series(df, size)
-    return df_series
+    df.update(df_temp)
+    raise Exception('stop right here')
+    df.to_excel('words_test_test.xlsx', index=False, header=False)
+
+def get_dataframe():
+    df = clean_data('words_test_test.xlsx')
+    df['date'] = upload_date(df)
+    return df
 
 #df = clean_data(file)
 #df['date'] = upload_date(df)
