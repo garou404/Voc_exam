@@ -5,7 +5,7 @@ import datetime
 from voc_exam import get_dataframe, upload_date, clean_data, update_row, save_series, get_series
 
  # data loading
-file = 'words_test_test.xlsx'
+file = 'words_lv.xlsx'
 
 df_tempo = pd.DataFrame()
 
@@ -28,7 +28,7 @@ app.layout = html.Div([
           prevent_initial_call=True)
 def start_quiz(n_clicks, serie_size):
     global df_tempo
-    df_tempo = get_series(get_dataframe(), int(serie_size))
+    df_tempo = get_series(get_dataframe('words_lv.xlsx'), int(serie_size))
     df_tempo['asked'] = False
     df_tempo['answered'] = False
     df_tempo.iloc[0, df_tempo.columns.get_loc('asked')] = True
@@ -62,8 +62,8 @@ def display_next_question(n_clicks_right, n_clicks_wrong, answer):
     df_tempo.loc[condition, 'answered'] = True
 
     if len(df_tempo['answered'].unique()) == 1: # end of serie
-        df = get_dataframe()
-        save_series(df, df_tempo)
+        df = get_dataframe('words_lv.xlsx')
+        save_series(df, df_tempo, 'words_lv.xlsx')
         return html.Div(['serie complete'])
 
     result = df_tempo.loc[df_tempo['asked'] == False]

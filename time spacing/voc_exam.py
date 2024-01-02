@@ -22,6 +22,15 @@ def clean_data(file_name)->pd.DataFrame:
         next_index = 1
         if count < data.shape[0] - 1:
             while isinstance(data['question'][idx + next_index], str) == False:
+                print()
+                print()
+                print("data['answer'][idx]")
+                print(data['answer'][idx])
+                print("data['answer'][idx] type : " + str(type(data['answer'][idx])))
+                print()
+                print("data['answer'][idx + next_index]")
+                print(data['answer'][idx + next_index])
+                print("data['answer'][idx + next_index] type :" + str(type(data['answer'][idx + next_index])))
                 data['answer'][idx] = data['answer'][idx] + "#" + data['answer'][idx + next_index]
                 next_index += 1
         count += 1
@@ -80,8 +89,6 @@ def add_words(question, answer) ->pd.DataFrame:
     print("test")
 
 def get_series(data, size) ->pd.DataFrame:
-    print(data.shape[0])
-    print(size)
     if data.shape[0] < size:
         raise Exception('serie size superior than data rows')
     selected = pd.DataFrame()
@@ -94,6 +101,7 @@ def get_series(data, size) ->pd.DataFrame:
             indexes.append(random_index)
         random_index = random.randint(0, data.shape[0] - 1)
     selected = data.loc[indexes]  # selection aléatoire des éléments
+    print(selected.head(100).to_string())
     return selected
 
 def update_row(row, result):
@@ -108,15 +116,17 @@ def update_row(row, result):
         row.iloc[0, y_axis_date] = row.iloc[0, y_axis_date] + datetime.timedelta(days=1)
     return row
 
-def save_series(df, df_temp):
-    df = clean_data('words_test_test.xlsx')
+def save_series(df, df_temp, file):
+    df = clean_data(file)
     df['date'] = upload_date(df)
     df.update(df_temp)
+    print(df_temp.head(100).to_string())
+    print(df.head(1000).to_string())
     raise Exception('stop right here')
-    df.to_excel('words_test_test.xlsx', index=False, header=False)
+    df.to_excel(file, index=False, header=False)
 
-def get_dataframe():
-    df = clean_data('words_test_test.xlsx')
+def get_dataframe(file):
+    df = clean_data(file)
     df['date'] = upload_date(df)
     return df
 
