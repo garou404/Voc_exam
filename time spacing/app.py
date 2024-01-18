@@ -15,12 +15,15 @@ app = Dash(__name__)
 # App layout
 app.layout = html.Div([
     html.Div([
-        dcc.Input(id="serie-size", type="text", value=""),
-        html.Button(id='start-button', n_clicks=0, children='Start series'),
-    ], id='quiz-starter'),
-    html.Div([
-    ], id='quiz-container')
-])
+        html.Div([
+            dcc.Input(id="serie-size", type="text", value=""),
+            html.Button(id='start-button', n_clicks=0, children='Start series'),
+        ], id='quiz-starter',
+        className='quiz-starter-container-div'),
+            html.Div([
+        ], id='quiz-container')
+    ], className='general-quiz-container')
+], className='page-container')
 
 @callback(Output('quiz-container', 'children'),
           Input('start-button', 'n_clicks'),
