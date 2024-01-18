@@ -22,15 +22,6 @@ def clean_data(file_name)->pd.DataFrame:
         next_index = 1
         if count < data.shape[0] - 1:
             while isinstance(data['question'][idx + next_index], str) == False:
-                print()
-                print()
-                print("data['answer'][idx]")
-                print(data['answer'][idx])
-                print("data['answer'][idx] type : " + str(type(data['answer'][idx])))
-                print()
-                print("data['answer'][idx + next_index]")
-                print(data['answer'][idx + next_index])
-                print("data['answer'][idx + next_index] type :" + str(type(data['answer'][idx + next_index])))
                 data['answer'][idx] = data['answer'][idx] + "#" + data['answer'][idx + next_index]
                 next_index += 1
         count += 1
@@ -62,7 +53,7 @@ def iteration(data, file_name, size):
             count +=1
             indexes.append(random_index)
         random_index = random.randint(0, data.shape[0] -1)
-    selected = data.loc[indexes]#selection aléatoire des éléments
+    selected = data.loc[indexes] #selection aléatoire des éléments
     print(indexes)
     for id in selected.index:
         print(id)
@@ -122,7 +113,7 @@ def save_series(df, df_temp, file):
     df.update(df_temp)
     print(df_temp.head(100).to_string())
     print(df.head(1000).to_string())
-    raise Exception('stop right here')
+    #raise Exception('stop right here')
     df.to_excel(file, index=False, header=False)
 
 def get_dataframe(file):
