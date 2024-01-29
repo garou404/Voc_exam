@@ -4,7 +4,8 @@ import random
 import datetime
 import csv
 
-file = 'words_test_test.xlsx'
+#file = 'words_test_test.xlsx'
+
 # Dataset cleaning function
 def clean_data(file_name)->pd.DataFrame:
     data = pd.read_excel(file_name, index_col=0, header=None)
