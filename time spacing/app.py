@@ -24,10 +24,10 @@ app.layout = html.Div([
                     html.Button(id='start-button', n_clicks=0, children='Start series', className='btn btn-primary ')
                 ], className='col-md-4'),
             ], id='quiz-starter',
-            className='row'),
+            className='row border-bottom border-dark p-5'),
                 html.Div([
             ], id='quiz-container', className='row')
-        ], className='col-6 mt-5 p-5 border border-primary rounded ')
+        ], className='col-6 mt-5 border border-primary rounded ')
     ], className='row justify-content-md-center pt-5')
 ], className='container')
 
@@ -85,7 +85,7 @@ def display_next_question(n_clicks_right, n_clicks_wrong, answer):
 def get_quiz_layout(input_text):
     quiz_layout = html.Div([
         html.Div([
-            html.Div(input_text, className='form-label'),
+            html.Div(input_text, className='form-label text-center my-5 h4'),
         ], className='row'),
         html.Div([
             html.Div([
@@ -93,7 +93,7 @@ def get_quiz_layout(input_text):
                     dcc.Input(type='text', className='form-control'),
                 ], className='col-md-8'),
                 html.Div([
-                    html.Button(id='show-answer', children='show answer', className='btn btn-primary'),
+                    html.Button(id='show-answer', children='Answer', className='btn btn-primary'),
                 ], className='col-md-4'),
             ], className='row'),
             html.Div([
@@ -102,13 +102,13 @@ def get_quiz_layout(input_text):
         ], className='row'),
         html.Div([
             html.Div([
-                html.Button(id='right-answer-button', children='Y', className='btn btn-success mx-2 px-5'),
+                html.Button(id='right-answer-button', children='Good', className='btn btn-success mx-2 px-5'),
             ], className='col-md-6 d-flex justify-content-center'),
             html.Div([
-                html.Button(id='wrong-answer-button', children='N', className='btn btn-danger mx-2 px-5' ),
+                html.Button(id='wrong-answer-button', children='Wrong', className='btn btn-danger mx-2 px-5' ),
             ], className='col-md-6 d-flex justify-content-center'),
-        ], className='row'),
-    ], id='quiz_layout', className='')
+        ], className='row my-5'),
+    ], id='quiz_layout', className='mt-5')
     return quiz_layout
 
 # Run the app
