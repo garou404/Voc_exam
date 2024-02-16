@@ -4,13 +4,15 @@ import random
 import datetime
 import csv
 
-#file = 'words_test_test.xlsx'
+# progression steps cst
+steps = [1, 1, 2, 4, 15, 26, 28, 29, 29]
+
 
 # Dataset cleaning function
 def clean_data(file_name)->pd.DataFrame:
     data = pd.read_excel(file_name, index_col=0, header=None)
     data.reset_index(inplace=True)
-    data.columns = ['question', 'answer', 'interval', 'date']
+    data.columns = ['question', 'answer', 'date', 'steps_index']
     # data = data.dropna(axis=0)
     data = data.reset_index(drop=True)
     count = 0
@@ -97,15 +99,21 @@ def get_series(data, size) ->pd.DataFrame:
     return selected
 
 def update_row(row, result):
-    y_axis_date = row.columns.get_loc('date')
+    date_column_index = row.columns.get_loc('date')
+    steps_column_index = row.columns.get_loc('steps_index')
     if (result == 1):
-        # change interval
-        y_axis_interval = row.columns.get_loc('interval')
-        row.iloc[0, y_axis_interval] = row.iloc[0, y_axis_interval] * 2
-        # add interval * days to the current date
-        row.iloc[0, y_axis_date] = row.iloc[0, y_axis_date] + datetime.timedelta(days=row.iloc[0, y_axis_interval].item())
+        # change steps index
+        if row.iloc[0, steps_column_index] + 1 != len(steps):
+            row.iloc[0, steps_column_index] = row.iloc[0, steps_column_index] + 1
+        # add (steps[] * days) to the current date
+        row.iloc[0, date_column_index] = row.iloc[0, date_column_index] + datetime.timedelta(days=steps[row.iloc[0, steps_column_index]])
+
     else:
-        row.iloc[0, y_axis_date] = row.iloc[0, y_axis_date] + datetime.timedelta(days=1)
+        # change steps index
+        if row.iloc[0, steps_column_index] - 1 > 0:
+            row.iloc[0, steps_column_index] = row.iloc[0, steps_column_index] - 1
+            # add (steps[] * days) to the current date
+        row.iloc[0, date_column_index] = row.iloc[0, date_column_index] + datetime.timedelta(days=steps[row.iloc[0, steps_column_index]])
     return row
 
 def save_series(df, df_temp, file):
@@ -114,7 +122,7 @@ def save_series(df, df_temp, file):
     df.update(df_temp)
     print(df_temp.head(100).to_string())
     print(df.head(1000).to_string())
-    #raise Exception('stop right here')
+    raise Exception('stop right here')
     df.to_excel(file, index=False, header=False)
 
 def get_dataframe(file):
