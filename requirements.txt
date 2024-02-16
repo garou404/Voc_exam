@@ -1,7 +1,10 @@
-pandas
+pandas==2.2.0
 openpyxl
 Pillow
 jupyter
 matplotlib
 scikit-learn
 dash
+openai
+transformers
+torch
