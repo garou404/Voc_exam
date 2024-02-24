@@ -12,7 +12,7 @@ steps = [1, 1, 2, 4, 15, 26, 28, 29, 29]
 def clean_data(file_name)->pd.DataFrame:
     data = pd.read_excel(file_name, index_col=0, header=None)
     data.reset_index(inplace=True)
-    data.columns = ['question', 'answer', 'date', 'steps_index']
+    data.columns = ['question', 'answer', 'date', 'steps_index', 'fr_to_eng']
     # data = data.dropna(axis=0)
     data = data.reset_index(drop=True)
     count = 0
@@ -121,8 +121,7 @@ def save_series(df, df_temp, file):
     df['date'] = upload_date(df)
     df.update(df_temp)
     print(df_temp.head(100).to_string())
-    print(df.head(1000).to_string())
-    raise Exception('stop right here')
+    raise Exception('stop before saving')
     df.to_excel(file, index=False, header=False)
 
 def get_dataframe(file):

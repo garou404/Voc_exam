@@ -8,7 +8,7 @@ from pandas import DataFrame
 from voc_exam import get_dataframe, upload_date, clean_data, update_row, save_series, get_series
 
  # data loading
-file = 'words_V1.0.0.xlsx'
+file = 'words/words_lv.xlsx'
 #file = 'words_lv.xlsx'
 df_tempo: DataFrame = pd.DataFrame()
 
@@ -81,6 +81,8 @@ def display_next_question(n_clicks_right, n_clicks_wrong, answer):
     result = df_tempo.loc[df_tempo['asked'] == False]
     result.iloc[0, result.columns.get_loc('asked')] = True
     df_tempo.update(result)
+    if result.iloc[0, result.columns.get_loc('fr_to_eng')] == True:
+        print(result.iloc[0, result.columns.get_loc('answer')])
     question = result.iloc[0, result.columns.get_loc('question')]
     return get_quiz_layout(question)
 
