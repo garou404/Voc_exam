@@ -121,8 +121,19 @@ def save_series(df, df_temp, file):
     df.update(df_temp)
     print(df_temp.head(100).to_string())
     print(df.head(1000).to_string())
-    #raise Exception('stop right here')
+    raise Exception('stop right here')
     df.to_excel(file, index=False, header=False)
+
+
+def save_serie_score(serie_size, score):
+    df_series = pd.read_csv('words/series_history.csv', sep=';')
+    today = datetime.datetime.now()
+    if df_series.shape[0] == 0:
+        df_series.loc[0] = [serie_size, score, today.date()]
+    else:
+        df_series.loc[df_series.shape[0] + 1] = [serie_size, score, today.date()]
+    print(df_series)
+    df_series.to_csv('words/series_history.csv', sep=';', index=False)
 
 def get_dataframe(file):
     df = clean_data(file)

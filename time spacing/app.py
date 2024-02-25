@@ -6,13 +6,13 @@ import random
 
 from pandas import DataFrame
 
-from voc_exam import get_dataframe, upload_date, clean_data, update_row, save_series, get_series
+from voc_exam import get_dataframe, upload_date, clean_data, update_row, save_series, get_series, save_serie_score
 
  # data loading
 file = 'words/words_lv.xlsx'
 #file = 'words_lv.xlsx'
 df_tempo: DataFrame = pd.DataFrame()
-
+right_answer_count = 0
 # Initialize the app
 app = Dash(__name__)
 
@@ -77,16 +77,19 @@ def show_answer(n_clicks, question_value):
           prevent_initial_call=True)
 def display_next_question(n_clicks_right, n_clicks_wrong, answer):
     global df_tempo
+    global right_answer_count
     condition = (df_tempo['answered'] == False) & (df_tempo['asked'] == True)
 
     if ctx.triggered_id == 'right-answer-button': # update the interval and the date
         df_tempo.update(update_row(df_tempo[condition], 1))
+        right_answer_count += 1
     else:
         df_tempo.update(update_row(df_tempo[condition], 0))
     df_tempo.loc[condition, 'answered'] = True
 
     if len(df_tempo['answered'].unique()) == 1: # end of serie
         df = get_dataframe(file)
+        save_serie_score(df_tempo.shape[0], right_answer_count)
         save_series(df, df_tempo, file)
         return html.Div(['serie complete'])
 
