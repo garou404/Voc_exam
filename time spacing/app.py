@@ -2,6 +2,7 @@ from dash import Dash, html, dash_table, dcc, callback, Output, Input, State, ct
 import pandas as pd
 import plotly.express as px
 import datetime
+import random
 
 from pandas import DataFrame
 
@@ -45,17 +46,28 @@ def start_quiz(n_clicks, serie_size):
     df_tempo['answered'] = False
     df_tempo.iloc[0, df_tempo.columns.get_loc('asked')] = True
     condition = (df_tempo['answered'] == False) & (df_tempo['asked'] == True)
-    question = df_tempo.loc[condition, 'question']
+
+    if df_tempo.loc[condition, 'fr_to_eng'].values[0] == True:
+        asking_direction = ['answer', 'question']
+        index_asking_direction = random.random()
+        index_asking_direction = round(index_asking_direction)
+        question = df_tempo.loc[condition, asking_direction[index_asking_direction]].values[0]
+    else:
+        question = df_tempo.loc[condition, 'question'].values[0]
     return get_quiz_layout(question)
 
 @callback(
     Output('answer-label', 'children'),
     Input('show-answer', 'n_clicks'),
+    Input('question-container', 'children'),
     prevent_initial_call=True)
-def show_answer(n_clicks):
+def show_answer(n_clicks, question_value):
     global df_tempo
     condition = (df_tempo['answered'] == False) & (df_tempo['asked'] == True)
-    answer = df_tempo.loc[condition, 'answer']
+    if question_value == df_tempo.loc[condition, 'question'].values[0]:
+        answer = df_tempo.loc[condition, 'answer']
+    else:
+        answer = df_tempo.loc[condition, 'question']
     return answer
 
 @callback(Output('quiz_layout', 'children'),
@@ -81,16 +93,21 @@ def display_next_question(n_clicks_right, n_clicks_wrong, answer):
     result = df_tempo.loc[df_tempo['asked'] == False]
     result.iloc[0, result.columns.get_loc('asked')] = True
     df_tempo.update(result)
+
     if result.iloc[0, result.columns.get_loc('fr_to_eng')] == True:
-        print(result.iloc[0, result.columns.get_loc('answer')])
-    question = result.iloc[0, result.columns.get_loc('question')]
+        asking_direction = ['answer', 'question']
+        index_asking_direction = random.random()
+        index_asking_direction = round(index_asking_direction)
+        question = result.iloc[0, result.columns.get_loc(asking_direction[index_asking_direction])]
+    else:
+        question = result.iloc[0, result.columns.get_loc('question')]
     return get_quiz_layout(question)
 
 
 def get_quiz_layout(input_text):
     quiz_layout = html.Div([
         html.Div([
-            html.Div(input_text, className='form-label text-center my-5 h4'),
+            html.Div(input_text, id='question-container', className='form-label text-center my-5 h4'),
         ], className='row'),
         html.Div([
             html.Div([
