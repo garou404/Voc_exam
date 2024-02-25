@@ -2,7 +2,6 @@ import pandas as pd
 pd.options.mode.chained_assignment = None  # default='warn'
 import random
 import datetime
-import csv
 
 # progression steps cst
 steps = [1, 1, 2, 4, 15, 26, 28, 29, 29]
@@ -12,7 +11,7 @@ steps = [1, 1, 2, 4, 15, 26, 28, 29, 29]
 def clean_data(file_name)->pd.DataFrame:
     data = pd.read_excel(file_name, index_col=0, header=None)
     data.reset_index(inplace=True)
-    data.columns = ['question', 'answer', 'date', 'steps_index']
+    data.columns = ['question', 'answer', 'date', 'steps_index', 'fr_to_eng']
     # data = data.dropna(axis=0)
     data = data.reset_index(drop=True)
     count = 0
