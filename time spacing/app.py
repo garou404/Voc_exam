@@ -41,6 +41,7 @@ app.layout = html.Div([
           prevent_initial_call=True)
 def start_quiz(n_clicks, serie_size):
     global df_tempo
+    print(get_dataframe(file))
     df_tempo = get_series(get_dataframe(file), int(serie_size))
     df_tempo['asked'] = False
     df_tempo['answered'] = False
