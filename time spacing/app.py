@@ -9,7 +9,7 @@ from pandas import DataFrame
 from voc_exam import get_dataframe, upload_date, clean_data, update_row, save_series, get_series
 
  # data loading
-file = 'words/words_lv.xlsx'
+file = 'words/words_V1.0.0.xlsx'
 #file = 'words_lv.xlsx'
 df_tempo: DataFrame = pd.DataFrame()
 
