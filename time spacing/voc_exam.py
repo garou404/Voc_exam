@@ -9,9 +9,8 @@ steps = [1, 1, 2, 4, 15, 26, 28, 29, 29]
 
 # Dataset cleaning function
 def clean_data(file_name)->pd.DataFrame:
-    data = pd.read_excel(file_name, index_col=0, header=None)
+    data = pd.read_excel(file_name, index_col=0)
     data.reset_index(inplace=True)
-    data.columns = ['question', 'answer', 'date', 'steps_index', 'fr_to_eng']
     # data = data.dropna(axis=0)
     data = data.reset_index(drop=True)
     count = 0
@@ -27,7 +26,7 @@ def clean_data(file_name)->pd.DataFrame:
                 data['answer'][idx] = data['answer'][idx] + "#" + data['answer'][idx + next_index]
                 next_index += 1
         count += 1
-    data = data.dropna(axis=0)
+    data.dropna(subset=data.columns[:2], inplace=True)
     data = data.reset_index(drop=True)
     return data
 
@@ -35,10 +34,10 @@ def clean_data(file_name)->pd.DataFrame:
 def upload_date(df:pd.DataFrame) ->pd.DataFrame:
     today = datetime.datetime.now()
     # If the date is older than today date then update it
-    df.loc[df['date'] < today, "date"] = today.date()
+    df.loc[df['date'] < today, "date"] = pd.to_datetime(today.date())
     for i in range(df.shape[0]):
         if(isinstance(df['date'][i], datetime.datetime)):
-            df['date'][i] = df['date'][i].date()
+            df.loc[i, 'date'] = pd.to_datetime(df.loc[i, 'date'].date())
     return df['date']
 
 
@@ -98,21 +97,32 @@ def get_series(data, size) ->pd.DataFrame:
     return selected
 
 def update_row(row, result):
+    print('input')
+    print(row.to_string())
     date_column_index = row.columns.get_loc('date')
     steps_column_index = row.columns.get_loc('steps_index')
+    asked_count_col_index = row.columns.get_loc('asked_count')
+    row.iloc[0, asked_count_col_index] = row.iloc[0, asked_count_col_index] + 1
+    row.iloc[0, row.columns.get_loc('third_last_asked')] = row.iloc[0, row.columns.get_loc('second_last_asked')]
+    row.iloc[0, row.columns.get_loc('second_last_asked')] = row.iloc[0, row.columns.get_loc('first_last_asked')]
     if (result == 1):
+        right_answer_count_col_index = row.columns.get_loc('right_answer_count')
+        row.iloc[0, right_answer_count_col_index] = row.iloc[0, right_answer_count_col_index] + 1
         # change steps index
         if row.iloc[0, steps_column_index] + 1 != len(steps):
             row.iloc[0, steps_column_index] = row.iloc[0, steps_column_index] + 1
         # add (steps[] * days) to the current date
         row.iloc[0, date_column_index] = row.iloc[0, date_column_index] + datetime.timedelta(days=steps[row.iloc[0, steps_column_index]])
-
+        row.iloc[0, row.columns.get_loc('first_last_asked')] = True
     else:
         # change steps index
         if row.iloc[0, steps_column_index] - 1 > 0:
             row.iloc[0, steps_column_index] = row.iloc[0, steps_column_index] - 1
             # add (steps[] * days) to the current date
         row.iloc[0, date_column_index] = row.iloc[0, date_column_index] + datetime.timedelta(days=steps[row.iloc[0, steps_column_index]])
+        row.iloc[0, row.columns.get_loc('first_last_asked')] = False
+    print('output')
+    print(row.to_string())
     return row
 
 def save_series(df, df_temp, file):
@@ -122,7 +132,18 @@ def save_series(df, df_temp, file):
     print(df_temp.head(100).to_string())
     print(df.head(1000).to_string())
     #raise Exception('stop right here')
-    df.to_excel(file, index=False, header=False)
+    df.to_excel(file, index=False)
+
+
+def save_serie_score(serie_size, score):
+    df_series = pd.read_csv('words/series_history.csv', sep=';')
+    today = datetime.datetime.now()
+    if df_series.shape[0] == 0:
+        df_series.loc[0] = [serie_size, score, today.date()]
+    else:
+        df_series.loc[df_series.shape[0] + 1] = [serie_size, score, today.date()]
+    print(df_series)
+    df_series.to_csv('words/series_history.csv', sep=';', index=False)
 
 def get_dataframe(file):
     df = clean_data(file)
