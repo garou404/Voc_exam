@@ -2,6 +2,7 @@ import pandas as pd
 pd.options.mode.chained_assignment = None  # default='warn'
 import random
 import datetime
+import time
 
 # progression steps cst
 steps = [1, 1, 2, 4, 15, 26, 28, 29, 29]
@@ -88,7 +89,7 @@ def get_series(data, size) ->pd.DataFrame:
     random_index = random.randint(0, data.shape[0] - 1)
     count = 0
     while count != size:
-        if (indexes.count(random_index) == 0) & (data['date'][random_index] == datetime.datetime.now().date()):
+        if (indexes.count(random_index) == 0) & (data['date'][random_index].date() == datetime.datetime.now().date()):
             count += 1
             indexes.append(random_index)
         random_index = random.randint(0, data.shape[0] - 1)
@@ -131,7 +132,7 @@ def save_series(df, df_temp, file):
     df.update(df_temp)
     print(df_temp.head(100).to_string())
     print(df.head(1000).to_string())
-    #raise Exception('stop right here')
+    raise Exception('stop right here')
     df.to_excel(file, index=False)
 
 
