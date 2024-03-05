@@ -11,6 +11,7 @@ steps = [1, 1, 2, 4, 15, 26, 28, 29, 29]
 def clean_data(file_name)->pd.DataFrame:
     data = pd.read_excel(file_name, index_col=0)
     data.reset_index(inplace=True)
+    print(data.columns)
     # data = data.dropna(axis=0)
     data = data.reset_index(drop=True)
     count = 0
@@ -97,7 +98,6 @@ def get_series(data, size) ->pd.DataFrame:
     return selected
 
 def update_row(row, result):
-    print('input')
     print(row.to_string())
     date_column_index = row.columns.get_loc('date')
     steps_column_index = row.columns.get_loc('steps_index')
