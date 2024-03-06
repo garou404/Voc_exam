@@ -20,7 +20,7 @@ df_series_score = pd.read_csv('./words/series_history.csv', sep=';')[:5]
 df_series_score['score'] = 0
 df_series_score['score'] = df_series_score['serie_score']/df_series_score['serie_size']
 
-fig = px.line(df_series_score, x="date", y="score", width=600, height=300)
+fig = px.line(df_series_score, x="date", y="score", width=400, height=200)
 
 # Initialize the app
 app = Dash(__name__)
@@ -31,24 +31,36 @@ app.layout = html.Div([
         html.Div([
             html.Div([
                 html.Div([
-                    dcc.Input(id="serie-size", type="text", value="", className='form-control ')
-                ], className='col-md-8'),
-                html.Div([
-                    html.Button(id='start-button', n_clicks=0, children='Start series', className='btn btn-primary ')
-                ], className='col-md-4'),
-            ], id='quiz-starter', className='row border-bottom border-dark p-5'),
-            html.Div([
-                html.Div('last serie scores', className='md-2'),
-                html.Div([
                     dcc.Graph(figure=fig)
-                ], className='md-8'),
-            ], id='serie-result-container', className='row'),
+                ])
+],          className='d-flex flex-column align-items-center align-items-sm-start px-3 pt-2 text-white min-vh-100')
+        #], className='d-flex flex-column flex-shrink-0 p-3 text-white bg-dark'),
+        ], className='col-auto col-md-4 col-xl-2 px-sm-2 px-0 bg-dark'),
+        html.Div([
             html.Div([
+                html.Div([
+                    html.Div([
+                        html.Div([
+                            dcc.Input(id="serie-size", type="text", value="", className='form-control ')
+                        ], className='col-md-8'),
+                        html.Div([
+                            html.Button(id='start-button', n_clicks=0, children='Start series', className='btn btn-primary ')
+                        ], className='col-md-4'),
+                    ], id='quiz-starter', className='row border-bottom border-dark p-5'),
+                    html.Div([
+                        html.Div('last serie scores', className='md-2'),
+                        html.Div([
 
-            ], id='quiz-container', className='row')
-        ], className='col-6 mt-5 border border-primary rounded ')
-    ], className='row justify-content-md-center pt-5')
-], className='container')
+                        ], className='md-8'),
+                    ], id='serie-result-container', className='row'),
+                    html.Div([
+
+                    ], id='quiz-container', className='row')
+                ], className='col-6 mt-5 border border-primary rounded ')
+            ], className='row justify-content-md-center pt-5')
+        ], className='col')
+    ], className='row flex-nowrap')
+], className='container-fluid')
 
 
 @callback(Output('quiz-container', 'children'),
@@ -160,7 +172,7 @@ def get_quiz_layout(input_text, score):
                 html.Button(id='wrong-answer-button', children='Wrong', className='btn btn-danger mx-2 px-5' ),
             ], className='col-md-6 d-flex justify-content-center'),
         ], className='row my-5'),
-    ], id='quiz_layout', className='mt-5')
+    ], id='quiz_layout')
     return quiz_layout
 
 # Run the app

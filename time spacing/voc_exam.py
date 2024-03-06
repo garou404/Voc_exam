@@ -1,6 +1,6 @@
 import pandas as pd
 pd.options.mode.chained_assignment = None  # default='warn'
-import random
+import random as rd
 import datetime
 import time
 
@@ -48,13 +48,13 @@ def upload_date(df:pd.DataFrame) ->pd.DataFrame:
 def iteration(data, file_name, size):
     selected = pd.DataFrame()
     indexes = []
-    random_index = random.randint(0, data.shape[0] - 1)
+    random_index = rd.randint(0, data.shape[0] - 1)
     count = 0
     while count != size:
         if (indexes.count(random_index) == 0) & (data['date'][random_index] == datetime.datetime.now().date()):
             count +=1
             indexes.append(random_index)
-        random_index = random.randint(0, data.shape[0] -1)
+        random_index = rd.randint(0, data.shape[0] -1)
     selected = data.loc[indexes] #selection aléatoire des éléments
     print(indexes)
     for id in selected.index:
@@ -86,13 +86,21 @@ def get_series(data, size) ->pd.DataFrame:
         raise Exception('serie size superior than data rows')
     selected = pd.DataFrame()
     indexes = []
-    random_index = random.randint(0, data.shape[0] - 1)
     count = 0
+
+    date_test = datetime.datetime.now().date()
     while count != size:
-        if (indexes.count(random_index) == 0) & (data['date'][random_index].date() == datetime.datetime.now().date()):
-            count += 1
-            indexes.append(random_index)
-        random_index = random.randint(0, data.shape[0] - 1)
+        df_temp = data.loc[data['date'].dt.date == date_test]
+        list_index = df_temp.index.values
+        if size - count < df_temp.shape[0]:
+            rd.shuffle(list_index)
+            indexes.extend(list_index[:(size - count)])
+        else:
+            indexes.extend(list_index)
+        count = len(indexes)
+        date_test = date_test + datetime.timedelta(days=1)
+
+    rd.shuffle(indexes)
     selected = data.loc[indexes]  # selection aléatoire des éléments
     print(selected.head(100).to_string())
     return selected
