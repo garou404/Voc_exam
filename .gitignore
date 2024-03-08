@@ -1,5 +1,7 @@
 .idea/
 analyse de données/
+venv/
+fretly/
 english words.xlsx
 main.py
 recipe.csv
