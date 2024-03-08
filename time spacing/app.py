@@ -3,7 +3,6 @@ import pandas as pd
 import plotly.express as px
 import datetime
 import random
-
 from pandas import DataFrame
 
 from voc_exam import get_dataframe, upload_date, clean_data, update_row, save_series, get_series, save_serie_score
@@ -13,6 +12,13 @@ file = 'words/words_lv.xlsx'
 #file = 'words_lv.xlsx'
 df_tempo: DataFrame = pd.DataFrame()
 right_answer_count = 0
+
+
+df_series_score = pd.read_csv('./words/series_history.csv', sep=';')
+df_series_score['score'] = 0
+df_series_score['score'] = df_series_score['serie_score']/df_series_score['serie_size']
+fig = px.scatter(df_series_score, x="date", y="score")
+
 # Initialize the app
 app = Dash(__name__)
 
@@ -27,13 +33,18 @@ app.layout = html.Div([
                 html.Div([
                     html.Button(id='start-button', n_clicks=0, children='Start series', className='btn btn-primary ')
                 ], className='col-md-4'),
-            ], id='quiz-starter',
-            className='row border-bottom border-dark p-5'),
-                html.Div([
+            ], id='quiz-starter', className='row border-bottom border-dark p-5'),
+            html.Div([
+                html.Div('last serie scores', className='md-2'),
+                dcc.Graph(fig)
+            ], id='serie-result-container', className='row'),
+            html.Div([
+
             ], id='quiz-container', className='row')
         ], className='col-6 mt-5 border border-primary rounded ')
     ], className='row justify-content-md-center pt-5')
 ], className='container')
+
 
 @callback(Output('quiz-container', 'children'),
           Input('start-button', 'n_clicks'),
@@ -54,7 +65,12 @@ def start_quiz(n_clicks, serie_size):
         question = df_tempo.loc[condition, asking_direction[index_asking_direction]].values[0]
     else:
         question = df_tempo.loc[condition, 'question'].values[0]
-    return get_quiz_layout(question)
+    asked_count = df_tempo.loc[condition, 'asked_count'].values[0]
+    if asked_count == 0:
+        score = 'not asked yet'
+    else:
+        score = str(df_tempo.loc[condition, 'right_answer_count'].values[0]) + '/' + str(asked_count)
+    return get_quiz_layout(question, score)
 
 @callback(
     Output('answer-label', 'children'),
@@ -104,10 +120,15 @@ def display_next_question(n_clicks_right, n_clicks_wrong, answer):
         question = result.iloc[0, result.columns.get_loc(asking_direction[index_asking_direction])]
     else:
         question = result.iloc[0, result.columns.get_loc('question')]
-    return get_quiz_layout(question)
+
+    if result.iloc[0, result.columns.get_loc('asked_count')] == 0:
+        score = 'not asked yet'
+    else:
+        score = str(result.iloc[0, result.columns.get_loc('right_answer_count')])+'/'+str(result.iloc[0, result.columns.get_loc('asked_count')])
+    return get_quiz_layout(question, score)
 
 
-def get_quiz_layout(input_text):
+def get_quiz_layout(input_text, score):
     quiz_layout = html.Div([
         html.Div([
             html.Div(input_text, id='question-container', className='form-label text-center my-5 h4'),
@@ -119,7 +140,8 @@ def get_quiz_layout(input_text):
                 ], className='col-md-8'),
                 html.Div([
                     html.Button(id='show-answer', children='Answer', className='btn btn-primary'),
-                ], className='col-md-4'),
+                ], className='col-md-2'),
+                html.Div(score, className='col-md-2'),
             ], className='row'),
             html.Div([
                 html.Div(id='answer-label', className='form-label'),
