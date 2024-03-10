@@ -144,6 +144,8 @@ def save_serie_score(serie_size, score):
     else:
         df_series.loc[df_series.shape[0] + 1] = [serie_size, score, today.date()]
     print(df_series)
+    print([serie_size, score, today.date()])
+    #raise Exception('no serie saving')
     df_series.to_csv('words/series_history.csv', sep=';', index=False)
 
 def get_dataframe(file):

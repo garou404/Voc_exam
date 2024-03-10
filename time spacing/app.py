@@ -14,10 +14,13 @@ df_tempo: DataFrame = pd.DataFrame()
 right_answer_count = 0
 
 
-df_series_score = pd.read_csv('./words/series_history.csv', sep=';')
+#%%
+df_series_score = pd.read_csv('./words/series_history.csv', sep=';')[:5]
+
 df_series_score['score'] = 0
 df_series_score['score'] = df_series_score['serie_score']/df_series_score['serie_size']
-fig = px.scatter(df_series_score, x="date", y="score")
+
+fig = px.line(df_series_score, x="date", y="score", width=600, height=300)
 
 # Initialize the app
 app = Dash(__name__)
@@ -36,7 +39,9 @@ app.layout = html.Div([
             ], id='quiz-starter', className='row border-bottom border-dark p-5'),
             html.Div([
                 html.Div('last serie scores', className='md-2'),
-                dcc.Graph(fig)
+                html.Div([
+                    dcc.Graph(figure=fig)
+                ], className='md-8'),
             ], id='serie-result-container', className='row'),
             html.Div([
 
