@@ -1,3 +1,4 @@
+import numpy as np
 from dash import Dash, html, dash_table, dcc, callback, Output, Input, State, ctx
 import pandas as pd
 import plotly.express as px
@@ -14,13 +15,14 @@ df_tempo: DataFrame = pd.DataFrame()
 right_answer_count = 0
 
 
-#%%
 df_series_score = pd.read_csv('./words/series_history.csv', sep=';')[:5]
 
 df_series_score['score'] = 0
 df_series_score['score'] = df_series_score['serie_score']/df_series_score['serie_size']
 
-fig = px.line(df_series_score, x="date", y="score", width=400, height=200)
+fig = px.bar(df_series_score, x="date", y="score", width=500, height=250)
+fig.update_layout(margin=dict(l=20, r=20, t=20, b=20))
+
 
 # Initialize the app
 app = Dash(__name__)
@@ -33,9 +35,8 @@ app.layout = html.Div([
                 html.Div([
                     dcc.Graph(figure=fig)
                 ])
-],          className='d-flex flex-column align-items-center align-items-sm-start px-3 pt-2 text-white min-vh-100')
-        #], className='d-flex flex-column flex-shrink-0 p-3 text-white bg-dark'),
-        ], className='col-auto col-md-4 col-xl-2 px-sm-2 px-0 bg-dark'),
+            ], className='d-flex flex-column align-items-center align-items-sm-center px-3 pt-2 text-white min-vh-100')
+        ], className='col-auto col-md-4 px-sm-2 px-0 bg-dark'),
         html.Div([
             html.Div([
                 html.Div([
@@ -48,18 +49,11 @@ app.layout = html.Div([
                         ], className='col-md-4'),
                     ], id='quiz-starter', className='row border-bottom border-dark p-5'),
                     html.Div([
-                        html.Div('last serie scores', className='md-2'),
-                        html.Div([
-
-                        ], className='md-8'),
-                    ], id='serie-result-container', className='row'),
-                    html.Div([
-
                     ], id='quiz-container', className='row')
                 ], className='col-6 mt-5 border border-primary rounded ')
             ], className='row justify-content-md-center pt-5')
         ], className='col')
-    ], className='row flex-nowrap')
+    ], className='row')
 ], className='container-fluid')
 
 
