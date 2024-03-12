@@ -3,6 +3,10 @@ pd.options.mode.chained_assignment = None  # default='warn'
 import random as rd
 import datetime
 import time
+<<<<<<< HEAD
+
+=======
+>>>>>>> dev
 # progression steps cst
 steps = [1, 1, 2, 4, 15, 26, 28, 29, 29]
 
@@ -53,7 +57,7 @@ def iteration(data, file_name, size):
         if (indexes.count(random_index) == 0) & (data['date'][random_index] == datetime.datetime.now().date()):
             count +=1
             indexes.append(random_index)
-        random_index = random.randint(0, data.shape[0] -1)
+        random_index = rd.randint(0, data.shape[0] -1)
     selected = data.loc[indexes] #selection aléatoire des éléments
     print(indexes)
     for id in selected.index:
@@ -138,7 +142,11 @@ def save_series(df, df_temp, file):
     df.update(df_temp)
     print(df_temp.head(100).to_string())
     print(df.head(1000).to_string())
+<<<<<<< HEAD
+    # raise Exception('stop right here')
+=======
     raise Exception('stop right here')
+>>>>>>> dev
     df.to_excel(file, index=False)
 
 
@@ -150,6 +158,8 @@ def save_serie_score(serie_size, score):
     else:
         df_series.loc[df_series.shape[0] + 1] = [serie_size, score, today.date()]
     print(df_series)
+    print([serie_size, score, today.date()])
+    #raise Exception('no serie saving')
     df_series.to_csv('words/series_history.csv', sep=';', index=False)
 
 def get_dataframe(file):

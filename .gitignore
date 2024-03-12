@@ -1,9 +1,9 @@
 .idea/
-analyse de données/
+analyse de données/*
+fretly/*
 venv/
-fretly/
 english words.xlsx
 main.py
 recipe.csv
 words exam.py
-time spacing/__pycache__/
+time spacing/__pycache__/*
