@@ -9,7 +9,7 @@ from pandas import DataFrame
 from voc_exam import get_dataframe, upload_date, clean_data, update_row, save_series, get_series, save_serie_score
 
  # data loading
-file = 'words/words_lv.xlsx'
+file = 'words/words_V1.0.0.xlsx'
 #file = 'words_lv.xlsx'
 df_tempo: DataFrame = pd.DataFrame()
 right_answer_count = 0
@@ -21,7 +21,10 @@ df_series_score['score'] = 0
 df_series_score['score'] = df_series_score['serie_score']/df_series_score['serie_size']
 
 fig = px.bar(df_series_score, x="date", y="score", width=500, height=250)
-fig.update_layout(margin=dict(l=20, r=20, t=20, b=20))
+fig.update_layout(
+    margin=dict(l=20, r=20, t=20, b=1),
+    yaxis=dict(range=[0, 1], title=''),
+    xaxis=dict(title='', tickformat='%B-%d'))
 
 
 # Initialize the app

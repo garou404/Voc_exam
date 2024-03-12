@@ -140,7 +140,7 @@ def save_series(df, df_temp, file):
     df.update(df_temp)
     print(df_temp.head(100).to_string())
     print(df.head(1000).to_string())
-    raise Exception('stop right here')
+    # raise Exception('stop right here')
     df.to_excel(file, index=False)
 
 
