@@ -1,0 +1,10 @@
+pandas
+openpyxl==3.1.2
+Pillow
+jupyter
+matplotlib
+scikit-learn
+dash
+openai
+transformers
+torch

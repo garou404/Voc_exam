@@ -1,0 +1,17 @@
+.quiz-starter-container-div{
+    display: flex;
+    flex-direction: column;
+}
+
+.general-quiz-container{
+    width: 30%;
+    height: 600px;
+    border: black solid 1px;
+    padding: 30px;
+}
+
+.page-container{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
