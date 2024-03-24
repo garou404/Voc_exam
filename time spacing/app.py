@@ -15,7 +15,7 @@ df_tempo: DataFrame = pd.DataFrame()
 right_answer_count = 0
 
 
-df_series_score = pd.read_csv('./words/series_history.csv', sep=';')[:5]
+df_series_score = pd.read_csv('./words/series_history.csv', sep=';')[-5:]
 
 df_series_score['score'] = 0
 df_series_score['score'] = df_series_score['serie_score']/df_series_score['serie_size']

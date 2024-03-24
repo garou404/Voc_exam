@@ -3,10 +3,7 @@ pd.options.mode.chained_assignment = None  # default='warn'
 import random as rd
 import datetime
 import time
-<<<<<<< HEAD
 
-=======
->>>>>>> dev
 # progression steps cst
 steps = [1, 1, 2, 4, 15, 26, 28, 29, 29]
 
@@ -142,11 +139,7 @@ def save_series(df, df_temp, file):
     df.update(df_temp)
     print(df_temp.head(100).to_string())
     print(df.head(1000).to_string())
-<<<<<<< HEAD
     # raise Exception('stop right here')
-=======
-    raise Exception('stop right here')
->>>>>>> dev
     df.to_excel(file, index=False)
 
 
