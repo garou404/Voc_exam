@@ -7,3 +7,5 @@ main.py
 recipe.csv
 words exam.py
 time spacing/__pycache__/*
+words/series_history.csv
+words/words_V1.0.0.xlsx
