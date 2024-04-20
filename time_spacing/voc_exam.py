@@ -4,19 +4,21 @@ import random as rd
 import datetime
 import time
 
-# progression steps cst
+# progression steps
 steps = [1, 1, 2, 4, 15, 26, 28, 29, 29]
 
 
-# Dataset cleaning function
 def clean_data(file_name)->pd.DataFrame:
+    """
+    dataset cleaning
+    :param file_name: words data path
+    :return: return the words dataframe
+    """
     data = pd.read_excel(file_name, index_col=0)
     data.reset_index(inplace=True)
-    # data = data.dropna(axis=0)
     data = data.reset_index(drop=True)
     count = 0
-    # nettoyage et mise en page du tableau
-    # concaténation des différentes traduction dans une seule case du tableau
+    # concatenate the translations with the previous one if the question value is empty
     for idx in data.index:
         if not isinstance(data['question'][idx], str):
             count += 1
@@ -27,15 +29,21 @@ def clean_data(file_name)->pd.DataFrame:
                 data['answer'][idx] = data['answer'][idx] + "#" + data['answer'][idx + next_index]
                 next_index += 1
         count += 1
+    # then drop the data with empty values
     data.dropna(subset=data.columns[:2], inplace=True)
     data = data.reset_index(drop=True)
     return data
 
-# Dates uploading
 def upload_date(df:pd.DataFrame) ->pd.DataFrame:
+    """
+    update the date older than today to today's date
+    :param df: words_dataframe
+    :return: return the updated date column
+    """
     today = datetime.datetime.now()
-    # If the date is older than today date then update it
+    # If the date is older than today's date then update it
     df.loc[df['date'] < today, "date"] = pd.to_datetime(today.date())
+    # change date column type to date and not datetime
     for i in range(df.shape[0]):
         if(isinstance(df['date'][i], datetime.datetime)):
             df.loc[i, 'date'] = pd.to_datetime(df.loc[i, 'date'].date())
@@ -43,9 +51,134 @@ def upload_date(df:pd.DataFrame) ->pd.DataFrame:
 
 
 
-# Random draw of 20 words
-# Print the words one by one
+def add_words(question, answer) ->pd.DataFrame:
+    """
+    add new words to the dataset
+    is to done
+    :param question:
+    :param answer:
+    :return:
+    """
+    print("add word")
+
+def get_series(data, size) ->pd.DataFrame:
+    """
+    get a data subset for the quiz
+    :param data: entire dataset of words
+    :param size: number of words to be asked
+    :return: return the subset
+    """
+    # verify that the series size isn't bigger than the entire dataset
+    if data.shape[0] < size:
+        raise Exception('series size bigger than dataset rows')
+    selected = pd.DataFrame()
+    indexes = []
+    selected_words_count = 0
+
+    date_exam = datetime.datetime.now().date()
+    # iterate over the days until the number of selected rows is equal to size
+    while selected_words_count != size:
+        df_temp = data.loc[data['date'].dt.date == date_exam]
+        list_index = df_temp.index.values
+        if size - selected_words_count < df_temp.shape[0]:
+            rd.shuffle(list_index)
+            indexes.extend(list_index[:(size - selected_words_count)])
+        else:
+            indexes.extend(list_index)
+        selected_words_count = len(indexes)
+        # increments exam date by one day
+        date_exam = date_exam + datetime.timedelta(days=1)
+
+    # randomize indexes selection
+    rd.shuffle(indexes)
+    selected = data.loc[indexes]
+    return selected
+
+def update_row(row, result):
+    """
+    update the word row according to the answer (yes or no)
+    :param row: word row
+    :param result: 1 good answer 0 otherwise
+    :return: return the updated row
+    """
+    # get columns index in columns list
+    date_column_index = row.columns.get_loc('date')
+    steps_column_index = row.columns.get_loc('steps_index')
+    asked_count_col_index = row.columns.get_loc('asked_count')
+    # increment asked count
+    row.iloc[0, asked_count_col_index] = row.iloc[0, asked_count_col_index] + 1
+    # shift the last asked values
+    row.iloc[0, row.columns.get_loc('third_last_asked')] = row.iloc[0, row.columns.get_loc('second_last_asked')]
+    row.iloc[0, row.columns.get_loc('second_last_asked')] = row.iloc[0, row.columns.get_loc('first_last_asked')]
+
+    if (result == 1):
+        # increment right answer count
+        right_answer_count_col_index = row.columns.get_loc('right_answer_count')
+        row.iloc[0, right_answer_count_col_index] = row.iloc[0, right_answer_count_col_index] + 1
+
+        # change steps index
+        if row.iloc[0, steps_column_index] + 1 != len(steps):
+            row.iloc[0, steps_column_index] = row.iloc[0, steps_column_index] + 1
+        # add (steps[] * days) to the current date
+        row.iloc[0, date_column_index] = row.iloc[0, date_column_index] + datetime.timedelta(days=steps[row.iloc[0, steps_column_index]])
+        row.iloc[0, row.columns.get_loc('first_last_asked')] = True
+    else:
+        # change steps index
+        if row.iloc[0, steps_column_index] - 1 > 0:
+            row.iloc[0, steps_column_index] = row.iloc[0, steps_column_index] - 1
+            # add (steps[] * days) to the current date
+        row.iloc[0, date_column_index] = row.iloc[0, date_column_index] + datetime.timedelta(days=steps[row.iloc[0, steps_column_index]])
+        row.iloc[0, row.columns.get_loc('first_last_asked')] = False
+    return row
+
+def save_series(df, df_temp, file):
+    """
+    update the dataset with the updated dataset used for the quiz
+    :param df:
+    :param df_temp: updated dataset
+    :param file: words data path
+    :return: nothing
+    """
+    df = clean_data(file)
+    df['date'] = upload_date(df)
+    df.update(df_temp)
+    df.to_excel(file, index=False)
+
+
+def save_serie_score(serie_size, score):
+    """
+    add the current serie score to the previous ones and save it
+    :param serie_size:
+    :param score:
+    :return:
+    """
+    df_series = pd.read_csv('time_spacing/mounted-here/series_history.csv', sep=';')
+    today = datetime.datetime.now()
+    if df_series.shape[0] == 0:
+        df_series.loc[0] = [serie_size, score, today.date()]
+    else:
+        df_series.loc[df_series.shape[0] + 1] = [serie_size, score, today.date()]
+    df_series.to_csv('time_spacing/mounted-here/series_history.csv', sep=';', index=False)
+
+def get_dataframe(file):
+    """
+
+    :param file:
+    :return:
+    """
+    df = clean_data(file)
+    df['date'] = upload_date(df)
+    return df
+
+
 def iteration(data, file_name, size):
+    """
+    command version of the quiz
+    :param data:
+    :param file_name:
+    :param size:
+    :return:
+    """
     selected = pd.DataFrame()
     indexes = []
     random_index = rd.randint(0, data.shape[0] - 1)
@@ -77,92 +210,3 @@ def iteration(data, file_name, size):
     data.loc[indexes] = selected
     #df['date'] = datetime.datetime.today().date()
     data.to_excel(file_name, index=False, header=False)
-
-def add_words(question, answer) ->pd.DataFrame:
-    print("test")
-
-def get_series(data, size) ->pd.DataFrame:
-    if data.shape[0] < size:
-        raise Exception('serie size superior than data rows')
-    selected = pd.DataFrame()
-    indexes = []
-    count = 0
-
-    date_test = datetime.datetime.now().date()
-    while count != size:
-        df_temp = data.loc[data['date'].dt.date == date_test]
-        list_index = df_temp.index.values
-        if size - count < df_temp.shape[0]:
-            rd.shuffle(list_index)
-            indexes.extend(list_index[:(size - count)])
-        else:
-            indexes.extend(list_index)
-        count = len(indexes)
-        date_test = date_test + datetime.timedelta(days=1)
-
-    rd.shuffle(indexes)
-    selected = data.loc[indexes]  # selection aléatoire des éléments
-    print(selected.head(100).to_string())
-    return selected
-
-def update_row(row, result):
-    print(row.to_string())
-    date_column_index = row.columns.get_loc('date')
-    steps_column_index = row.columns.get_loc('steps_index')
-    asked_count_col_index = row.columns.get_loc('asked_count')
-    row.iloc[0, asked_count_col_index] = row.iloc[0, asked_count_col_index] + 1
-    row.iloc[0, row.columns.get_loc('third_last_asked')] = row.iloc[0, row.columns.get_loc('second_last_asked')]
-    row.iloc[0, row.columns.get_loc('second_last_asked')] = row.iloc[0, row.columns.get_loc('first_last_asked')]
-    if (result == 1):
-        right_answer_count_col_index = row.columns.get_loc('right_answer_count')
-        row.iloc[0, right_answer_count_col_index] = row.iloc[0, right_answer_count_col_index] + 1
-        # change steps index
-        if row.iloc[0, steps_column_index] + 1 != len(steps):
-            row.iloc[0, steps_column_index] = row.iloc[0, steps_column_index] + 1
-        # add (steps[] * days) to the current date
-        row.iloc[0, date_column_index] = row.iloc[0, date_column_index] + datetime.timedelta(days=steps[row.iloc[0, steps_column_index]])
-        row.iloc[0, row.columns.get_loc('first_last_asked')] = True
-    else:
-        # change steps index
-        if row.iloc[0, steps_column_index] - 1 > 0:
-            row.iloc[0, steps_column_index] = row.iloc[0, steps_column_index] - 1
-            # add (steps[] * days) to the current date
-        row.iloc[0, date_column_index] = row.iloc[0, date_column_index] + datetime.timedelta(days=steps[row.iloc[0, steps_column_index]])
-        row.iloc[0, row.columns.get_loc('first_last_asked')] = False
-    print('output')
-    print(row.to_string())
-    return row
-
-def save_series(df, df_temp, file):
-    df = clean_data(file)
-    df['date'] = upload_date(df)
-    df.update(df_temp)
-    print(df_temp.head(100).to_string())
-    print(df.head(1000).to_string())
-    # raise Exception('stop right here')
-    df.to_excel(file, index=False)
-
-
-def save_serie_score(serie_size, score):
-    df_series = pd.read_csv('time_spacing/mounted-here/series_history.csv', sep=';')
-    today = datetime.datetime.now()
-    if df_series.shape[0] == 0:
-        df_series.loc[0] = [serie_size, score, today.date()]
-    else:
-        df_series.loc[df_series.shape[0] + 1] = [serie_size, score, today.date()]
-    print(df_series)
-    print([serie_size, score, today.date()])
-    #raise Exception('no serie saving')
-    df_series.to_csv('time_spacing/mounted-here/series_history.csv', sep=';', index=False)
-
-def get_dataframe(file):
-    df = clean_data(file)
-    df['date'] = upload_date(df)
-    return df
-
-#df = clean_data(file)
-#df['date'] = upload_date(df)
-#iteration(df, file, 30)# manque mettre la date de demain si on échoue
-
-#rajouter du code: si le fichier est ouvert dit de le fermer
-
