@@ -5,18 +5,18 @@ import plotly.express as px
 import datetime
 import random
 from pandas import DataFrame
-
+import os
 from voc_exam import get_dataframe, upload_date, clean_data, update_row, save_series, get_series, save_serie_score
 
  # data loading
-file = 'words/words_V1.0.0.xlsx'
+file = 'time_spacing/mounted-here/words_V1.0.0.xlsx'
+serie_history_path = 'time_spacing/mounted-here/series_history.csv'
 #file = 'words_lv.xlsx'
 df_tempo: DataFrame = pd.DataFrame()
 right_answer_count = 0
 
-
-df_series_score = pd.read_csv('./words/series_history.csv', sep=';')[-5:]
-
+print(os.listdir('./'))
+df_series_score = pd.read_csv(serie_history_path, sep=';')[-5:]
 df_series_score['score'] = 0
 df_series_score['score'] = df_series_score['serie_score']/df_series_score['serie_size']
 

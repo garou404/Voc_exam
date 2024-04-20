@@ -144,7 +144,7 @@ def save_series(df, df_temp, file):
 
 
 def save_serie_score(serie_size, score):
-    df_series = pd.read_csv('words/series_history.csv', sep=';')
+    df_series = pd.read_csv('time_spacing/mounted-here/series_history.csv', sep=';')
     today = datetime.datetime.now()
     if df_series.shape[0] == 0:
         df_series.loc[0] = [serie_size, score, today.date()]
@@ -153,7 +153,7 @@ def save_serie_score(serie_size, score):
     print(df_series)
     print([serie_size, score, today.date()])
     #raise Exception('no serie saving')
-    df_series.to_csv('words/series_history.csv', sep=';', index=False)
+    df_series.to_csv('time_spacing/mounted-here/series_history.csv', sep=';', index=False)
 
 def get_dataframe(file):
     df = clean_data(file)

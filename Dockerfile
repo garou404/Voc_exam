@@ -7,7 +7,7 @@ COPY . ./
 #Running your APP and doing some PORT Forwarding
 EXPOSE 8000
 
-CMD ["python3", "time spacing/app.py"]
+CMD ["python3", "time_spacing/app.py"]
 
 # docker build -t image-name .
 

@@ -2,9 +2,10 @@
 analyse de données/*
 fretly/*
 venv/
+.venv/
 english words.xlsx
 main.py
 recipe.csv
 words exam.py
-time spacing/__pycache__/*
-time spacing/words/*
+time_spacing/__pycache__/*
+time_spacing/words/*
