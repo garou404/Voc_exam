@@ -9,12 +9,12 @@ import os
 from voc_exam import get_dataframe, upload_date, clean_data, update_row, save_series, get_series, save_serie_score
 
 # data initialization
-file = 'time_spacing/mounted-here/words_V1.0.0.xlsx'
-series_history_path = 'time_spacing/mounted-here/series_history.csv'
+WORDS_FILE = 'words/words_V1.0.0.xlsx'
+SERIES_HISTO_FILE = 'words/series_history.csv'
 df_quiz: DataFrame = pd.DataFrame()
 right_answer_count = 0
 
-df_series_score = pd.read_csv(series_history_path, sep=';')[-5:]
+df_series_score = pd.read_csv(SERIES_HISTO_FILE, sep=';')[-5:]
 df_series_score['score'] = 0
 df_series_score['score'] = df_series_score['serie_score']/df_series_score['serie_size']
 
@@ -67,7 +67,7 @@ app.layout = html.Div([
           prevent_initial_call=True)
 def start_quiz(n_clicks, serie_size):
     global df_quiz
-    df_quiz = get_series(get_dataframe(file), int(serie_size))
+    df_quiz = get_series(get_dataframe(WORDS_FILE), int(serie_size))
     df_quiz['asked'] = False
     df_quiz['answered'] = False
     # tell the df that the first element has been asked
@@ -88,6 +88,7 @@ def start_quiz(n_clicks, serie_size):
         score = str(df_quiz.loc[condition, 'right_answer_count'].values[0]) + '/' + str(asked_count)
     return get_quiz_layout(question, score)
 
+
 @callback(
     Output('answer-label', 'children'),
     Input('show-answer', 'n_clicks'),
@@ -102,6 +103,7 @@ def show_answer(n_clicks, question_value):
     else:
         answer = df_quiz.loc[condition, 'question']
     return answer
+
 
 @callback(Output('quiz_layout', 'children'),
           Input('right-answer-button', 'n_clicks'),
@@ -123,9 +125,9 @@ def display_next_question(n_clicks_right, n_clicks_wrong, answer):
 
     # see if answered column is full of True
     if len(df_quiz['answered'].unique()) == 1:
-        df = get_dataframe(file)
+        df = get_dataframe(WORDS_FILE)
         save_serie_score(df_quiz.shape[0], right_answer_count)
-        save_series(df, df_quiz, file)
+        save_series(df, df_quiz, WORDS_FILE)
         return html.Div(['Series complete'])
 
     result = df_quiz.loc[df_quiz['asked'] == False]
@@ -176,6 +178,7 @@ def get_quiz_layout(input_text, score):
         ], className='row my-5'),
     ], id='quiz_layout')
     return quiz_layout
+
 
 # Run the app
 if __name__ == '__main__':

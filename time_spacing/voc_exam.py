@@ -5,10 +5,12 @@ import datetime
 import time
 
 # progression steps
-steps = [1, 1, 2, 4, 15, 26, 28, 29, 29]
+STEPS = [1, 1, 2, 4, 15, 26, 28, 29, 29]
+WORDS_FILE = 'words/words_V1.0.0.xlsx'
+SERIES_HISTO_FILE = 'words/series_history.csv'
 
 
-def clean_data(file_name)->pd.DataFrame:
+def clean_data(file_name) -> pd.DataFrame:
     """
     dataset cleaning
     :param file_name: words data path
@@ -34,7 +36,8 @@ def clean_data(file_name)->pd.DataFrame:
     data = data.reset_index(drop=True)
     return data
 
-def upload_date(df:pd.DataFrame) ->pd.DataFrame:
+
+def upload_date(df:pd.DataFrame) -> pd.Series:
     """
     update the date older than today to today's date
     :param df: words_dataframe
@@ -50,8 +53,7 @@ def upload_date(df:pd.DataFrame) ->pd.DataFrame:
     return df['date']
 
 
-
-def add_words(question, answer) ->pd.DataFrame:
+def add_words(question, answer):
     """
     add new words to the dataset
     is to done
@@ -61,7 +63,8 @@ def add_words(question, answer) ->pd.DataFrame:
     """
     print("add word")
 
-def get_series(data, size) ->pd.DataFrame:
+
+def get_series(data, size) -> pd.DataFrame:
     """
     get a data subset for the quiz
     :param data: entire dataset of words
@@ -94,6 +97,7 @@ def get_series(data, size) ->pd.DataFrame:
     selected = data.loc[indexes]
     return selected
 
+
 def update_row(row, result):
     """
     update the word row according to the answer (yes or no)
@@ -117,7 +121,7 @@ def update_row(row, result):
         row.iloc[0, right_answer_count_col_index] = row.iloc[0, right_answer_count_col_index] + 1
 
         # change steps index
-        if row.iloc[0, steps_column_index] + 1 != len(steps):
+        if row.iloc[0, steps_column_index] + 1 != len(STEPS):
             row.iloc[0, steps_column_index] = row.iloc[0, steps_column_index] + 1
         # add (steps[] * days) to the current date
         row.iloc[0, date_column_index] = row.iloc[0, date_column_index] + datetime.timedelta(days=steps[row.iloc[0, steps_column_index]])
@@ -130,6 +134,7 @@ def update_row(row, result):
         row.iloc[0, date_column_index] = row.iloc[0, date_column_index] + datetime.timedelta(days=steps[row.iloc[0, steps_column_index]])
         row.iloc[0, row.columns.get_loc('first_last_asked')] = False
     return row
+
 
 def save_series(df, df_temp, file):
     """
@@ -147,24 +152,24 @@ def save_series(df, df_temp, file):
 
 def save_serie_score(serie_size, score):
     """
-    add the current serie score to the previous ones and save it
+    add the current series score to the previous ones and save it
     :param serie_size:
     :param score:
     :return:
     """
-    df_series = pd.read_csv('time_spacing/mounted-here/series_history.csv', sep=';')
+    df_series = pd.read_csv(SERIES_HISTO_FILE, sep=';')
     today = datetime.datetime.now()
     if df_series.shape[0] == 0:
         df_series.loc[0] = [serie_size, score, today.date()]
     else:
         df_series.loc[df_series.shape[0] + 1] = [serie_size, score, today.date()]
-    df_series.to_csv('time_spacing/mounted-here/series_history.csv', sep=';', index=False)
+    df_series.to_csv(SERIES_HISTO_FILE, sep=';', index=False)
 
-def get_dataframe(file):
+
+def get_dataframe(file) -> pd.DataFrame:
     """
-
-    :param file:
-    :return:
+    :param file: path of words file
+    :return: return the entire words DataFrame
     """
     df = clean_data(file)
     df['date'] = upload_date(df)
