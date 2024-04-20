@@ -8,18 +8,17 @@ from pandas import DataFrame
 import os
 from voc_exam import get_dataframe, upload_date, clean_data, update_row, save_series, get_series, save_serie_score
 
- # data loading
+# data initialization
 file = 'time_spacing/mounted-here/words_V1.0.0.xlsx'
-serie_history_path = 'time_spacing/mounted-here/series_history.csv'
-#file = 'words_lv.xlsx'
-df_tempo: DataFrame = pd.DataFrame()
+series_history_path = 'time_spacing/mounted-here/series_history.csv'
+df_quiz: DataFrame = pd.DataFrame()
 right_answer_count = 0
 
-print(os.listdir('./'))
-df_series_score = pd.read_csv(serie_history_path, sep=';')[-5:]
+df_series_score = pd.read_csv(series_history_path, sep=';')[-5:]
 df_series_score['score'] = 0
 df_series_score['score'] = df_series_score['serie_score']/df_series_score['serie_size']
 
+# score graphe
 fig = px.bar(df_series_score, x="date", y="score", width=500, height=250)
 fig.update_layout(
     margin=dict(l=20, r=20, t=20, b=1),
@@ -29,6 +28,8 @@ fig.update_layout(
 
 # Initialize the app
 app = Dash(__name__)
+app.config["suppress_callback_exceptions"] = True
+
 
 # App layout
 app.layout = html.Div([
@@ -65,25 +66,26 @@ app.layout = html.Div([
           State('serie-size', 'value'),
           prevent_initial_call=True)
 def start_quiz(n_clicks, serie_size):
-    global df_tempo
-    df_tempo = get_series(get_dataframe(file), int(serie_size))
-    df_tempo['asked'] = False
-    df_tempo['answered'] = False
-    df_tempo.iloc[0, df_tempo.columns.get_loc('asked')] = True
-    condition = (df_tempo['answered'] == False) & (df_tempo['asked'] == True)
-
-    if df_tempo.loc[condition, 'fr_to_eng'].values[0] == True:
+    global df_quiz
+    df_quiz = get_series(get_dataframe(file), int(serie_size))
+    df_quiz['asked'] = False
+    df_quiz['answered'] = False
+    # tell the df that the first element has been asked
+    df_quiz.iloc[0, df_quiz.columns.get_loc('asked')] = True
+    # condition to see which element has been asked but not answered
+    condition = (df_quiz['answered'] == False) & (df_quiz['asked'] == True)
+    if df_quiz.loc[condition, 'fr_to_eng'].values[0]:
         asking_direction = ['answer', 'question']
         index_asking_direction = random.random()
         index_asking_direction = round(index_asking_direction)
-        question = df_tempo.loc[condition, asking_direction[index_asking_direction]].values[0]
+        question = df_quiz.loc[condition, asking_direction[index_asking_direction]].values[0]
     else:
-        question = df_tempo.loc[condition, 'question'].values[0]
-    asked_count = df_tempo.loc[condition, 'asked_count'].values[0]
+        question = df_quiz.loc[condition, 'question'].values[0]
+    asked_count = df_quiz.loc[condition, 'asked_count'].values[0]
     if asked_count == 0:
         score = 'not asked yet'
     else:
-        score = str(df_tempo.loc[condition, 'right_answer_count'].values[0]) + '/' + str(asked_count)
+        score = str(df_quiz.loc[condition, 'right_answer_count'].values[0]) + '/' + str(asked_count)
     return get_quiz_layout(question, score)
 
 @callback(
@@ -92,12 +94,13 @@ def start_quiz(n_clicks, serie_size):
     Input('question-container', 'children'),
     prevent_initial_call=True)
 def show_answer(n_clicks, question_value):
-    global df_tempo
-    condition = (df_tempo['answered'] == False) & (df_tempo['asked'] == True)
-    if question_value == df_tempo.loc[condition, 'question'].values[0]:
-        answer = df_tempo.loc[condition, 'answer']
+    global df_quiz
+    # condition to see which element has been asked but not answered
+    condition = (df_quiz['answered'] == False) & (df_quiz['asked'] == True)
+    if question_value == df_quiz.loc[condition, 'question'].values[0]:
+        answer = df_quiz.loc[condition, 'answer']
     else:
-        answer = df_tempo.loc[condition, 'question']
+        answer = df_quiz.loc[condition, 'question']
     return answer
 
 @callback(Output('quiz_layout', 'children'),
@@ -106,28 +109,30 @@ def show_answer(n_clicks, question_value):
           State('answer-label', 'children'),
           prevent_initial_call=True)
 def display_next_question(n_clicks_right, n_clicks_wrong, answer):
-    global df_tempo
+    global df_quiz
     global right_answer_count
-    condition = (df_tempo['answered'] == False) & (df_tempo['asked'] == True)
+    condition = (df_quiz['answered'] == False) & (df_quiz['asked'] == True)
 
-    if ctx.triggered_id == 'right-answer-button': # update the interval and the date
-        df_tempo.update(update_row(df_tempo[condition], 1))
+    # update the word's row interval and the date according to the answer
+    if ctx.triggered_id == 'right-answer-button':
+        df_quiz.update(update_row(df_quiz[condition], 1))
         right_answer_count += 1
     else:
-        df_tempo.update(update_row(df_tempo[condition], 0))
-    df_tempo.loc[condition, 'answered'] = True
+        df_quiz.update(update_row(df_quiz[condition], 0))
+    df_quiz.loc[condition, 'answered'] = True
 
-    if len(df_tempo['answered'].unique()) == 1: # end of serie
+    # see if answered column is full of True
+    if len(df_quiz['answered'].unique()) == 1:
         df = get_dataframe(file)
-        save_serie_score(df_tempo.shape[0], right_answer_count)
-        save_series(df, df_tempo, file)
-        return html.Div(['serie complete'])
+        save_serie_score(df_quiz.shape[0], right_answer_count)
+        save_series(df, df_quiz, file)
+        return html.Div(['Series complete'])
 
-    result = df_tempo.loc[df_tempo['asked'] == False]
+    result = df_quiz.loc[df_quiz['asked'] == False]
     result.iloc[0, result.columns.get_loc('asked')] = True
-    df_tempo.update(result)
+    df_quiz.update(result)
 
-    if result.iloc[0, result.columns.get_loc('fr_to_eng')] == True:
+    if result.iloc[0, result.columns.get_loc('fr_to_eng')]:
         asking_direction = ['answer', 'question']
         index_asking_direction = random.random()
         index_asking_direction = round(index_asking_direction)
