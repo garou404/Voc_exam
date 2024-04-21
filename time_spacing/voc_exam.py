@@ -2,7 +2,6 @@ import pandas as pd
 pd.options.mode.chained_assignment = None  # default='warn'
 import random as rd
 import datetime
-import time
 
 # progression steps
 STEPS = [1, 1, 2, 4, 15, 26, 28, 29, 29]
@@ -124,14 +123,16 @@ def update_row(row, result):
         if row.iloc[0, steps_column_index] + 1 != len(STEPS):
             row.iloc[0, steps_column_index] = row.iloc[0, steps_column_index] + 1
         # add (steps[] * days) to the current date
-        row.iloc[0, date_column_index] = row.iloc[0, date_column_index] + datetime.timedelta(days=steps[row.iloc[0, steps_column_index]])
+        row.iloc[0, date_column_index] = row.iloc[0, date_column_index] + \
+                                         datetime.timedelta(days=STEPS[row.iloc[0, steps_column_index]])
         row.iloc[0, row.columns.get_loc('first_last_asked')] = True
     else:
         # change steps index
         if row.iloc[0, steps_column_index] - 1 > 0:
             row.iloc[0, steps_column_index] = row.iloc[0, steps_column_index] - 1
             # add (steps[] * days) to the current date
-        row.iloc[0, date_column_index] = row.iloc[0, date_column_index] + datetime.timedelta(days=steps[row.iloc[0, steps_column_index]])
+        row.iloc[0, date_column_index] = row.iloc[0, date_column_index] + \
+                                         datetime.timedelta(days=STEPS[row.iloc[0, steps_column_index]])
         row.iloc[0, row.columns.get_loc('first_last_asked')] = False
     return row
 
@@ -150,19 +151,25 @@ def save_series(df, df_temp, file):
     df.to_excel(file, index=False)
 
 
-def save_serie_score(serie_size, score):
+def save_series_score(series_size, score):
     """
     add the current series score to the previous ones and save it
-    :param serie_size:
+    :param series_size:
     :param score:
     :return:
     """
     df_series = pd.read_csv(SERIES_HISTO_FILE, sep=';')
     today = datetime.datetime.now()
     if df_series.shape[0] == 0:
-        df_series.loc[0] = [serie_size, score, today.date()]
+        df_series.loc[0] = [series_size, score, today.date()]
     else:
-        df_series.loc[df_series.shape[0] + 1] = [serie_size, score, today.date()]
+        if pd.to_datetime(df_series.loc[df_series.shape[0] - 1, 'date']).date() == today.date():
+            df_series.loc[df_series.shape[0] - 1, 'serie_size'] = \
+                df_series.loc[df_series.shape[0] - 1, 'serie_size'] + series_size
+            df_series.loc[df_series.shape[0] - 1, 'serie_score'] = \
+                df_series.loc[df_series.shape[0] - 1, 'serie_score'] + score
+        else:
+            df_series.loc[df_series.shape[0] + 1] = [series_size, score, today.date()]
     df_series.to_csv(SERIES_HISTO_FILE, sep=';', index=False)
 
 
