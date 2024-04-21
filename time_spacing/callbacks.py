@@ -137,7 +137,7 @@ def get_quiz_layout(input_text, score):
 
 # score graphe
 def get_scores_graph():
-    fig = px.bar(df_series_score, x="date", y="score", width=500, height=250, color='date')
+    fig = px.bar(df_series_score, x="date", y="score", width=500, height=250, color='date', text='serie_size')
     fig.update_layout(
         margin=dict(l=20, r=20, t=20, b=1),
         yaxis=dict(range=[0, 1], title=''),
