@@ -41,7 +41,12 @@ def start_quiz(n_clicks, serie_size):
         score = 'not asked yet'
     else:
         score = str(df_quiz.loc[condition, 'right_answer_count'].values[0]) + '/' + str(asked_count)
-    return get_quiz_layout(question, score)
+
+    if df_quiz.loc[condition, 'fr_to_eng'].values[0]:
+        fr_to_eng = 'fr to eng?'
+    else:
+        fr_to_eng = ''
+    return get_quiz_layout(question, score, fr_to_eng)
 
 
 @callback(
@@ -63,12 +68,19 @@ def show_answer(n_clicks, question_value):
 @callback(Output('quiz_layout', 'children'),
           Input('right-answer-button', 'n_clicks'),
           Input('wrong-answer-button', 'n_clicks'),
+          State('fr-to-eng-checklist', 'value'),
           State('answer-label', 'children'),
           prevent_initial_call=True)
-def display_next_question(n_clicks_right, n_clicks_wrong, answer):
+def display_next_question(n_clicks_right, n_clicks_wrong, fr_to_eng_check, answer):
     global df_quiz
     global right_answer_count
     condition = (df_quiz['answered'] == False) & (df_quiz['asked'] == True)
+
+    # change fr_to_eng col according to if the checklist is checked
+    if 'fr to eng?' in fr_to_eng_check:
+        df_quiz.loc[condition, 'fr_to_eng'] = True
+    else:
+        df_quiz.loc[condition, 'fr_to_eng'] = False
 
     # update the word's row interval and the date according to the answer
     if ctx.triggered_id == 'right-answer-button':
@@ -101,10 +113,16 @@ def display_next_question(n_clicks_right, n_clicks_wrong, answer):
         score = 'not asked yet'
     else:
         score = str(result.iloc[0, result.columns.get_loc('right_answer_count')])+'/'+str(result.iloc[0, result.columns.get_loc('asked_count')])
-    return get_quiz_layout(question, score)
+
+    if result.iloc[0, result.columns.get_loc('fr_to_eng')]:
+        fr_to_eng = 'fr to eng?'
+    else:
+        fr_to_eng = ''
+
+    return get_quiz_layout(question, score, fr_to_eng)
 
 
-def get_quiz_layout(input_text, score):
+def get_quiz_layout(input_text, score, fr_to_eng):
     quiz_layout = html.Div([
         html.Div([
             html.Div(input_text, id='question-container', className='form-label text-center my-5 h4'),
@@ -118,6 +136,9 @@ def get_quiz_layout(input_text, score):
                     html.Button(id='show-answer', children='Answer', className='btn btn-primary'),
                 ], className='col-md-2'),
                 html.Div(score, className='col-md-2'),
+            ], className='row'),
+            html.Div([
+                dcc.Checklist(['fr to eng?'], [fr_to_eng], id='fr-to-eng-checklist')
             ], className='row'),
             html.Div([
                 html.Div(id='answer-label', className='form-label'),
