@@ -1,1 +1,1 @@
-A repository dedicated to a personal project, which is a platform for making quizzes on the vocabulary of another language.
+A repository dedicated to a personal project, which is a quiz platform that ask the translations of some foreign words.
