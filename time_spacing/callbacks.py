@@ -1,4 +1,4 @@
-from dash import html, callback, Input, Output, State, ctx, dcc
+from dash import html, callback, Input, Output, State, ctx, dcc, no_update
 from voc_exam import *
 import plotly.express as px
 import random
@@ -17,10 +17,12 @@ df_series_score['score'] = df_series_score['serie_score']/df_series_score['serie
 
 
 @callback(Output('quiz-container', 'children'),
+          Output('quiz-starter', 'className'),
           Input('start-button', 'n_clicks'),
           State('serie-size', 'value'),
+          State('quiz-starter', 'className'),
           prevent_initial_call=True)
-def start_quiz(n_clicks, serie_size):
+def start_quiz(n_clicks, serie_size, quiz_starter_current_class):
     global df_quiz
     df_quiz = get_series(get_dataframe(WORDS_FILE), int(serie_size))
     df_quiz['asked'] = False
@@ -46,7 +48,11 @@ def start_quiz(n_clicks, serie_size):
         fr_to_eng = 'fr to eng?'
     else:
         fr_to_eng = ''
-    return get_quiz_layout(question, score, fr_to_eng)
+
+    # Add display none to quiz starter menu
+    updated_class = quiz_starter_current_class + " d-none"
+
+    return get_quiz_layout(question, score, fr_to_eng), updated_class
 
 
 @callback(
@@ -66,23 +72,27 @@ def show_answer(n_clicks, question_value):
 
 
 @callback(Output('quiz_layout', 'children'),
+          Output('quiz-starter', 'className', allow_duplicate=True),
           Input('right-answer-button', 'n_clicks'),
           Input('wrong-answer-button', 'n_clicks'),
+          State('quiz-starter', 'className'),
           State('fr-to-eng-checklist', 'value'),
           State('answer-label', 'children'),
           prevent_initial_call=True)
-def display_next_question(n_clicks_right, n_clicks_wrong, fr_to_eng_check, answer):
+def display_next_question(n_clicks_right, n_clicks_wrong, quiz_starter_current_class, fr_to_eng_check, answer):
+    if (n_clicks_right is None) & (n_clicks_wrong is None):
+        return no_update
     global df_quiz
     global right_answer_count
     condition = (df_quiz['answered'] == False) & (df_quiz['asked'] == True)
 
-    # change fr_to_eng col according to if the checklist is checked
+    # Change fr_to_eng col according to if the checklist is checked
     if 'fr to eng?' in fr_to_eng_check:
         df_quiz.loc[condition, 'fr_to_eng'] = True
     else:
         df_quiz.loc[condition, 'fr_to_eng'] = False
 
-    # update the word's row interval and the date according to the answer
+    # Update the word's row interval and the date according to the answer
     if ctx.triggered_id == 'right-answer-button':
         df_quiz.update(update_row(df_quiz[condition], 1))
         right_answer_count += 1
@@ -90,12 +100,15 @@ def display_next_question(n_clicks_right, n_clicks_wrong, fr_to_eng_check, answe
         df_quiz.update(update_row(df_quiz[condition], 0))
     df_quiz.loc[condition, 'answered'] = True
 
-    # see if answered column is full of True
+    # See if answered column is full of True
     if len(df_quiz['answered'].unique()) == 1:
         df = get_dataframe(WORDS_FILE)
         save_series_score(df_quiz.shape[0], right_answer_count)
         save_series(df, df_quiz, WORDS_FILE)
-        return html.Div(['Series complete'])
+        # Remove display none from the quiz start classes
+        updated_class = quiz_starter_current_class.replace(" d-none", "")
+        return html.Div(['Series complete '+ str(right_answer_count)+'/'+str(df_quiz.shape[0])],
+                        className='h2 d-flex justify-content-center mt-5 mb-5'), updated_class
 
     result = df_quiz.loc[df_quiz['asked'] == False]
     result.iloc[0, result.columns.get_loc('asked')] = True
@@ -119,7 +132,7 @@ def display_next_question(n_clicks_right, n_clicks_wrong, fr_to_eng_check, answe
     else:
         fr_to_eng = ''
 
-    return get_quiz_layout(question, score, fr_to_eng)
+    return get_quiz_layout(question, score, fr_to_eng), quiz_starter_current_class
 
 
 def get_quiz_layout(input_text, score, fr_to_eng):
