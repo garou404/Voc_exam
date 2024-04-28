@@ -1,8 +1,12 @@
 from dash import html, callback, Input, Output, State, ctx, dcc, no_update
 from voc_exam import *
 import plotly.express as px
+import plotly.graph_objects as go
 import random
 from pandas import DataFrame
+import numpy as np
+import datetime as dt
+
 
 
 # data initialization
@@ -11,7 +15,8 @@ SERIES_HISTO_FILE = 'words/series_history.csv'
 df_quiz: DataFrame = pd.DataFrame()
 right_answer_count = 0
 
-df_series_score = pd.read_csv(SERIES_HISTO_FILE, sep=';')[-5:]
+df_series_score = pd.read_csv(SERIES_HISTO_FILE, sep=';')
+df_series_score['date'] = pd.to_datetime(df_series_score['date'])
 df_series_score['score'] = 0
 df_series_score['score'] = df_series_score['serie_score']/df_series_score['serie_size']
 
@@ -171,10 +176,107 @@ def get_quiz_layout(input_text, score, fr_to_eng):
 
 # score graphe
 def get_scores_graph():
-    fig = px.bar(df_series_score, x="date", y="score", width=500, height=250, color='date', text='serie_size')
+    fig = px.bar(df_series_score[-5:], x="date", y="score", width=500, height=250, color='date', text='serie_size')
     fig.update_layout(
         margin=dict(l=20, r=20, t=20, b=1),
         yaxis=dict(range=[0, 1], title=''),
         xaxis=dict(title='', tickformat='%B-%d'))
     fig.update_layout(showlegend=False)
     return fig
+
+def get_month_heatmap_graph(current):
+    print(df_series_score.shape[0] - 1)
+    month = df_series_score['date'][df_series_score.shape[0] - 1].month
+    if current == False:
+        month = month - 1
+
+    #df_series_score['date'] = pd.to_datetime(df_series['date'])
+    print(df_series_score.dtypes)
+
+    list_date = list(df_series_score.loc[df_series_score['date'].dt.month == month, 'date'])
+    start_date = dt.datetime.strptime('2024-' + str(month) + '-01', '%Y-%m-%d').date()
+    end_date = dt.datetime.strptime('2024-' + str(month + 1) + '-01', '%Y-%m-%d').date()
+    month_range = [start_date + dt.timedelta(x) for x in range((end_date - start_date).days)]
+    month_number_of_days = (end_date - start_date).days
+    days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+    text = []
+    first_week = []
+    for day in days:
+        if month_range[0].strftime("%a") == day:
+            first_week.append('1')
+            while len(first_week) < 7:
+                first_week.append(str(int(first_week[-1:][0]) + 1))
+            break
+        else:
+            first_week.append('')
+    text.append(first_week)
+    next_week = []
+    for i in range(int(first_week[len(first_week) - 1]) + 1, month_number_of_days + 1):
+        if len(next_week) == 7:
+            text.append(next_week)
+            next_week = []
+        next_week.append(str(i))
+    while len(next_week) < 7:
+        next_week.append('')
+    text.append(next_week)
+    text = np.flip(text, axis=0)
+    values_df = pd.DataFrame(text, columns=days)
+    for index, row in values_df.iterrows():
+        for col in days:
+            if row[col] in ([x.strftime("%d") for x in list_date]):
+                row[col] = 1
+            elif row[col] == '':
+                row[col] = np.nan
+            else:
+                row[col] = 0
+
+    fig = go.Figure(data=go.Heatmap(
+        x=['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        y=values_df.index,
+        z=values_df,
+        text=text,
+        texttemplate="%{text}",
+        textfont={"size": 13},
+        xgap=5, ygap=5,
+        colorscale=[[0, 'rgb(224,224,245)'], [0.5, 'rgb(32,32,32)'], [1, 'rgb(206,53,53)']],
+        showscale=False,
+        hoverinfo='skip',
+        hoverongaps=False),
+    )
+
+    fig.update_layout(yaxis_scaleanchor="x",
+                      coloraxis_colorbar=None,
+                      xaxis_side='top',
+                      #width=500,
+                      height=200,
+                      autosize=True,
+                      showlegend=False,
+                      title=get_month_name(month),
+                      xaxis_nticks=36,
+                      dragmode=False,  # Disables the ability to pan/move the plot
+                      uirevision=True,  # Disables zooming
+                      margin=dict(l=5, r=5, t=30, b=20),
+                      )
+    fig.update_yaxes(showticklabels=False, fixedrange=True)
+    fig.update_xaxes(tickfont=dict(size=13), fixedrange=True)
+
+    return fig
+
+
+def get_month_name(month_number):
+    months = {
+        1: "January",
+        2: "February",
+        3: "March",
+        4: "April",
+        5: "May",
+        6: "June",
+        7: "July",
+        8: "August",
+        9: "September",
+        10: "October",
+        11: "November",
+        12: "December"
+    }
+
+    return months.get(month_number, "Invalid month number")
