@@ -176,12 +176,42 @@ def get_quiz_layout(input_text, score, fr_to_eng):
 
 # score graphe
 def get_scores_graph():
-    fig = px.bar(df_series_score[-5:], x="date", y="score", width=500, height=250, color='date', text='serie_size')
+    fig = go.Figure()
+
+    fig.add_trace(
+        go.Scatter(
+            x=list(range(df_series_score.shape[0])),
+            y=df_series_score['score'],
+            fill='tozeroy',
+            marker_symbol='star-diamond',
+            marker_size=15,
+            marker_line_width=1.5,
+            marker_line_color='rgba(255, 0, 0, 1)',
+            marker_color="rgba(255, 255, 255, 0.1)",
+            line_color='rgba(175,0,0,0.8)',
+            fillcolor='rgba(215, 68, 68, 0.2)'
+        )
+    )
+
+    fig.add_hline(y=1, line_width=0.5, line_color="green")
+
     fig.update_layout(
+        xaxis=dict(
+            tickvals=list(range(df_series_score.shape[0])),
+            ticktext=df_series_score['date'].dt.date,
+            range=[df_series_score.shape[0]-6, df_series_score.shape[0]],
+            title='',
+            tickformat='%B-%d',
+            tickfont=dict(color='white')
+        ),
+        yaxis=dict(range=[0, 1.25], title='', tickfont=dict(color='white')),
         margin=dict(l=20, r=20, t=20, b=1),
-        yaxis=dict(range=[0, 1], title=''),
-        xaxis=dict(title='', tickformat='%B-%d'))
-    fig.update_layout(showlegend=False)
+        showlegend=False,
+        width=500,
+        height=300,
+        paper_bgcolor='rgba(0,0,0,0)',
+    )
+
     return fig
 
 def get_month_heatmap_graph(current):
