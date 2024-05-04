@@ -204,7 +204,11 @@ def get_scores_graph():
             tickformat='%B-%d',
             tickfont=dict(color='white')
         ),
-        yaxis=dict(range=[0, 1.25], title='', tickfont=dict(color='white')),
+        yaxis=dict(
+            range=[0, 1.25],
+            title='',
+            tickfont=dict(color='white')
+        ),
         margin=dict(l=20, r=20, t=20, b=1),
         showlegend=False,
         width=500,
@@ -274,19 +278,25 @@ def get_month_heatmap_graph(current):
         hoverongaps=False),
     )
 
-    fig.update_layout(yaxis_scaleanchor="x",
-                      coloraxis_colorbar=None,
-                      xaxis_side='top',
-                      #width=500,
-                      height=200,
-                      autosize=True,
-                      showlegend=False,
-                      title=get_month_name(month),
-                      xaxis_nticks=36,
-                      dragmode=False,  # Disables the ability to pan/move the plot
-                      uirevision=True,  # Disables zooming
-                      margin=dict(l=5, r=5, t=30, b=20),
-                      )
+    fig.update_layout(
+        yaxis_scaleanchor="x",
+        coloraxis_colorbar=None,
+        xaxis_side='top',
+        height=200,
+        autosize=True,
+        showlegend=False,
+        title=get_month_name(month),
+        title_font_color='white',
+        xaxis_nticks=36,
+        dragmode=False,  # Disables the ability to pan/move the plot
+        uirevision=True,  # Disables zooming
+        margin=dict(l=5, r=5, t=30, b=20),
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+        xaxis=dict(tickfont=dict(color='white'), showgrid=False, zeroline=False),
+        yaxis=dict(tickfont=dict(color='white'), showgrid=False, zeroline=False),
+        title_y=1
+    )
     fig.update_yaxes(showticklabels=False, fixedrange=True)
     fig.update_xaxes(tickfont=dict(size=13), fixedrange=True)
 
