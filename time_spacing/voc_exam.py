@@ -2,12 +2,14 @@ import pandas as pd
 pd.options.mode.chained_assignment = None  # default='warn'
 import random as rd
 import datetime
+import os
 
 # progression steps
 STEPS = [1, 1, 2, 4, 15, 26, 28, 29, 29]
-WORDS_FILE = 'words/words_V1.0.0.xlsx'
-SERIES_HISTO_FILE = 'words/series_history.csv'
-
+DATA_PATH = 'words/'
+WORDS_FILE = DATA_PATH+'words_V1.0.0.xlsx'
+SERIES_HISTO_FILE = DATA_PATH+'series_history.csv'
+BIN_PATH = DATA_PATH+'bin.csv'
 
 def clean_data(file_name) -> pd.DataFrame:
     """
@@ -148,7 +150,24 @@ def save_series(df, df_temp, file):
     df = clean_data(file)
     df['date'] = upload_date(df)
     df.update(df_temp)
-    df.to_excel(file, index=False)
+
+    # Select rows index that need to go
+    index_to_evict = df_temp.loc[df_temp['trash'] == True].index
+    df_cleaned = df.drop(index_to_evict)
+
+    # Create bin file if doesn't exist and add first line for df columns
+    if not os.path.exists(BIN_PATH):
+        with open(BIN_PATH, 'a') as bin_file:
+            bin_file.write('old_index;question;answer;date;steps_index;fr_to_eng;right_answer_count;asked_count;\
+            first_last_asked;second_last_asked;third_last_asked')
+
+    # Forms the df_bin with old words and new ones
+    df_bin = pd.read_csv(BIN_PATH, sep=';')
+    df_add_to_bin = df_temp.loc[df_temp['trash'] == True, df_temp.columns.values[:-3]].rename_axis('old_index').reset_index()
+    df_bin = pd.concat([df_bin, df_add_to_bin])
+
+    df_bin.to_csv(BIN_PATH, index=False, sep=';')
+    df_cleaned.to_excel(file, index=False)
 
 
 def save_series_score(series_size, score):

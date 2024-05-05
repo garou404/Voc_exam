@@ -30,8 +30,11 @@ df_series_score['score'] = df_series_score['serie_score']/df_series_score['serie
 def start_quiz(n_clicks, serie_size, quiz_starter_current_class):
     global df_quiz
     df_quiz = get_series(get_dataframe(WORDS_FILE), int(serie_size))
+    # Columns role is to let the program know which word is currently asked
     df_quiz['asked'] = False
     df_quiz['answered'] = False
+    # Column to know which words should be evicted at the end
+    df_quiz['trash'] = False
     # tell the df that the first element has been asked
     df_quiz.iloc[0, df_quiz.columns.get_loc('asked')] = True
     # condition to see which element has been asked but not answered
@@ -45,7 +48,7 @@ def start_quiz(n_clicks, serie_size, quiz_starter_current_class):
         question = df_quiz.loc[condition, 'question'].values[0]
     asked_count = df_quiz.loc[condition, 'asked_count'].values[0]
     if asked_count == 0:
-        score = 'not asked yet'
+        score = '0/0'
     else:
         score = str(df_quiz.loc[condition, 'right_answer_count'].values[0]) + '/' + str(asked_count)
 
@@ -80,12 +83,13 @@ def show_answer(n_clicks, question_value):
           Output('quiz-starter', 'className', allow_duplicate=True),
           Input('right-answer-button', 'n_clicks'),
           Input('wrong-answer-button', 'n_clicks'),
+          Input('hidden-trigger', 'children'),
           State('quiz-starter', 'className'),
           State('fr-to-eng-checklist', 'value'),
           State('answer-label', 'children'),
           prevent_initial_call=True)
-def display_next_question(n_clicks_right, n_clicks_wrong, quiz_starter_current_class, fr_to_eng_check, answer):
-    if (n_clicks_right is None) & (n_clicks_wrong is None):
+def display_next_question(n_clicks_right, n_clicks_wrong, pass_the_word, quiz_starter_current_class, fr_to_eng_check, answer):
+    if (n_clicks_right is None) & (n_clicks_wrong is None) & (pass_the_word is None):
         return no_update
     global df_quiz
     global right_answer_count
@@ -97,18 +101,21 @@ def display_next_question(n_clicks_right, n_clicks_wrong, quiz_starter_current_c
     else:
         df_quiz.loc[condition, 'fr_to_eng'] = False
 
-    # Update the word's row interval and the date according to the answer
-    if ctx.triggered_id == 'right-answer-button':
-        df_quiz.update(update_row(df_quiz[condition], 1))
-        right_answer_count += 1
-    else:
-        df_quiz.update(update_row(df_quiz[condition], 0))
+    if pass_the_word != str(df_quiz.loc[condition, 'trash'].index.values[0]):
+        # Update the word's row interval and the date according to the answer
+        if ctx.triggered_id == 'right-answer-button':
+            df_quiz.update(update_row(df_quiz[condition], 1))
+            right_answer_count += 1
+        else:
+            df_quiz.update(update_row(df_quiz[condition], 0))
     df_quiz.loc[condition, 'answered'] = True
 
     # See if answered column is full of True
     if len(df_quiz['answered'].unique()) == 1:
         df = get_dataframe(WORDS_FILE)
-        save_series_score(df_quiz.shape[0], right_answer_count)
+        # Select the questions number and not counting the trash words
+        question_number = df_quiz.loc[df_quiz['trash'] == False].shape[0]
+        save_series_score(question_number, right_answer_count)
         save_series(df, df_quiz, WORDS_FILE)
         # Remove display none from the quiz start classes
         updated_class = quiz_starter_current_class.replace(" d-none", "")
@@ -139,7 +146,19 @@ def display_next_question(n_clicks_right, n_clicks_wrong, quiz_starter_current_c
 
     return get_quiz_layout(question, score, fr_to_eng), quiz_starter_current_class
 
-
+@callback(
+    Output('hidden-trigger', 'children'),
+    Input('btn-trash-word', 'n_clicks'),
+    prevent_initial_call=True
+)
+def add_word_to_trash(n_clicks):
+    # set trash col to true of the word currently asked and start the callback display_next_question
+    global df_quiz
+    global right_answer_count
+    condition = (df_quiz['answered'] == False) & (df_quiz['asked'] == True)
+    df_quiz.loc[condition, 'trash'] = True
+    row_id = df_quiz.loc[condition, 'trash'].index.values[0]
+    return str(row_id)
 def get_quiz_layout(input_text, score, fr_to_eng):
     quiz_layout = html.Div([
         html.Div([
@@ -153,7 +172,11 @@ def get_quiz_layout(input_text, score, fr_to_eng):
                 html.Div([
                     html.Button(id='show-answer', children='Answer', className='btn btn-primary'),
                 ], className='col-md-2'),
-                html.Div(score, className='col-md-2'),
+                html.Div([
+                    html.Button('X', id='btn-trash-word', n_clicks=0, className='btn btn-danger')
+                ], className='col-md-1'),
+                html.Div(score, className='col-md-1'),
+                html.Div(id='hidden-trigger', className='d-none')
             ], className='row'),
             html.Div([
                 dcc.Checklist(['fr to eng?'], [fr_to_eng], id='fr-to-eng-checklist')
@@ -219,13 +242,9 @@ def get_scores_graph():
     return fig
 
 def get_month_heatmap_graph(current):
-    print(df_series_score.shape[0] - 1)
     month = df_series_score['date'][df_series_score.shape[0] - 1].month
     if current == False:
         month = month - 1
-
-    #df_series_score['date'] = pd.to_datetime(df_series['date'])
-    print(df_series_score.dtypes)
 
     list_date = list(df_series_score.loc[df_series_score['date'].dt.month == month, 'date'])
     start_date = dt.datetime.strptime('2024-' + str(month) + '-01', '%Y-%m-%d').date()
