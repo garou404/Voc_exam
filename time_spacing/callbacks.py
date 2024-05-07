@@ -242,18 +242,33 @@ def get_scores_graph():
     return fig
 
 def get_month_heatmap_graph(current):
+    """
+    function which create heatmap figures
+    :param current:
+    :return: figure
+    """
+    # Get the current month or the previous one
     month = df_series_score['date'][df_series_score.shape[0] - 1].month
     if current == False:
         month = month - 1
+    print(month)
 
+    # Get list of series date
     list_date = list(df_series_score.loc[df_series_score['date'].dt.month == month, 'date'])
+    # Get fist and last day of the month
     start_date = dt.datetime.strptime('2024-' + str(month) + '-01', '%Y-%m-%d').date()
     end_date = dt.datetime.strptime('2024-' + str(month + 1) + '-01', '%Y-%m-%d').date()
     month_range = [start_date + dt.timedelta(x) for x in range((end_date - start_date).days)]
+
+    # Get the number of day in the month
     month_number_of_days = (end_date - start_date).days
     days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
     text = []
     first_week = []
+
+    # Building a matrix which corresponds to a month
+    # '' -> no days then 1, 2, 3 and so on
+    # first_week = ['', '', '', '1', '2', '3', '4']
     for day in days:
         if month_range[0].strftime("%a") == day:
             first_week.append('1')
@@ -263,6 +278,7 @@ def get_month_heatmap_graph(current):
         else:
             first_week.append('')
     text.append(first_week)
+    # Keep building the matrix
     next_week = []
     for i in range(int(first_week[len(first_week) - 1]) + 1, month_number_of_days + 1):
         if len(next_week) == 7:
@@ -273,16 +289,19 @@ def get_month_heatmap_graph(current):
         next_week.append('')
     text.append(next_week)
     text = np.flip(text, axis=0)
+    # Create a DataFrame with the matrix
     values_df = pd.DataFrame(text, columns=days)
+    # Fill the dataframe with 0, 1, or nan depending on the series date list
     for index, row in values_df.iterrows():
         for col in days:
-            if row[col] in ([x.strftime("%d") for x in list_date]):
+            if row[col] in ([str(int(x.strftime("%d"))) for x in list_date]):
                 row[col] = 1
             elif row[col] == '':
                 row[col] = np.nan
             else:
                 row[col] = 0
 
+    # Initialize the figure
     fig = go.Figure(data=go.Heatmap(
         x=['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
         y=values_df.index,
