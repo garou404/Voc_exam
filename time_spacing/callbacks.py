@@ -1,4 +1,4 @@
-from dash import html, callback, Input, Output, State, ctx, dcc, no_update
+from dash import html, callback, Input, Output, State, ctx, dcc, no_update, dash_table
 from voc_exam import *
 import plotly.express as px
 import plotly.graph_objects as go
@@ -196,6 +196,33 @@ def get_quiz_layout(input_text, score, fr_to_eng):
     ], id='quiz_layout')
     return quiz_layout
 
+@callback(
+    Output('words-ranking-container', 'children'),
+    Input('main-url', 'pathname')
+)
+def get_html_ranking(_):
+    df_best_ranked = get_ranking(True)
+    print(df_best_ranked)
+    datatable_best = dash_table.DataTable(
+        id='datatable-best',
+        columns=[{'name': col, 'id': col} for col in df_best_ranked.columns],
+        data=df_best_ranked.to_dict(orient='records'),
+        style_cell={'color': 'black', 'fontSize':10},
+    )
+    df_worst_ranked = get_ranking(False)
+    datatable_worst = dash_table.DataTable(
+        id='datatable-best',
+        columns=[{'name': col, 'id': col} for col in df_worst_ranked.columns],
+        data=df_worst_ranked.to_dict(orient='records'),
+        style_cell={'color': 'black', 'fontSize':10},
+    )
+
+    ranking_layout = [
+        html.Div([datatable_best], className='col'),
+        html.Div([datatable_worst], className='col')
+    ]
+
+    return ranking_layout
 
 # score graphe
 def get_scores_graph():
@@ -268,6 +295,7 @@ def get_month_heatmap_graph(current):
 
     # Building a matrix which corresponds to a month
     # '' -> no days then 1, 2, 3 and so on
+    # Each matrix row is a week
     # first_week = ['', '', '', '1', '2', '3', '4']
     for day in days:
         if month_range[0].strftime("%a") == day:

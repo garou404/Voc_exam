@@ -201,6 +201,22 @@ def get_dataframe(file) -> pd.DataFrame:
     df['date'] = upload_date(df)
     return df
 
+def get_ranking(best):
+    """
+
+    :param best:
+    :return:
+    """
+    df_words = get_dataframe(WORDS_FILE)
+    df_words_asked = df_words.loc[df_words['asked_count'] > 0]
+    df_words_asked['ratio'] = df_words['right_answer_count']/df_words['asked_count']
+    df_words_asked['score'] = df_words['right_answer_count'].astype(str)+'/'+df_words['asked_count'].astype(str)
+    df_words_asked.sort_values(by=['ratio', 'asked_count']).reset_index(drop=True)
+    print(df_words_asked.columns)
+    if best:
+        return df_words_asked[['question', 'score']].head()
+    else:
+        return df_words_asked[['question', 'score']].tail()
 
 def iteration(data, file_name, size):
     """

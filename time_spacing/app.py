@@ -9,6 +9,7 @@ app.config["suppress_callback_exceptions"] = True
 
 # App layout
 app.layout = html.Div([
+    dcc.Location(id='main-url'),
     html.Div([
         html.Div([
             html.Div([
@@ -22,7 +23,8 @@ app.layout = html.Div([
                     html.Div([
                         dcc.Graph(figure=callbacks.get_month_heatmap_graph(current=True))
                     ], className='col-md-6')
-                ], className='row')
+                ], className='row'),
+                html.Div(className='row m-1', id='words-ranking-container')
             ], className='d-flex flex-column align-items-center align-items-sm-center px-3 pt-2 text-white min-vh-100')
         ], className='col-auto col-md-4 px-sm-2 px-0 bg-dark'),
         html.Div([
