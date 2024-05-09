@@ -164,12 +164,9 @@ def get_quiz_layout(input_text, score, fr_to_eng):
     quiz_layout = html.Div([
         html.Div([
             html.Div(input_text, id='question-container', className='form-label text-center my-5 h4'),
-        ], className='row'),
+        ], className='row border-bottom'),
         html.Div([
             html.Div([
-                html.Div([
-                    dcc.Input(type='text', className='form-control'),
-                ], className='col-md-8'),
                 html.Div([
                     html.Button(id='show-answer', children='Answer', className='btn btn-primary'),
                 ], className='col-md-2'),
@@ -193,7 +190,7 @@ def get_quiz_layout(input_text, score, fr_to_eng):
             html.Div([
                 html.Button(id='wrong-answer-button', children='Wrong', className='btn btn-danger mx-2 px-5' ),
             ], className='col-md-6 d-flex justify-content-center'),
-        ], className='row my-5'),
+        ], className='row my-5 border-top'),
     ], id='quiz_layout')
     return quiz_layout
 
@@ -203,59 +200,10 @@ def get_quiz_layout(input_text, score, fr_to_eng):
 )
 def get_html_ranking(_):
     df_best_ranked = get_ranking(True)
-    datatable_best = dash_table.DataTable(
-        id='datatable-best',
-        columns=[{'name': col, 'id': col} for col in df_best_ranked.columns],
-        data=df_best_ranked.to_dict(orient='records'),
-        style_cell={'color': 'black', 'fontSize': 12, 'border': '1px solid black' },
-        style_header={'display': 'none', 'height': '1'},
-        style_cell_conditional=[
-            {'if': {'column_id': 'index'},
-             'width': '20px',
-             'textAlign': 'center'},
-            {'if': {'column_id': 'score'},
-             'width': '20px',
-             'textAlign': 'center'},
-            {'if': {'column_id': 'question'},
-             'textAlign': 'left', 'max-width': '75px', 'overflow': 'hidden',
-        'textOverflow': 'ellipsis',}
-        ],
-        style_data={'backgroundColor': 'rgb(224, 224, 245)'},
-        tooltip_data=[
-            {
-                column: {'value': str(value), 'type': 'markdown'}
-                for column, value in row.items()
-            } for row in df_best_ranked.to_dict('records')
-        ],
-        tooltip_duration=None
-    )
+    datatable_best = get_datatable_layout(df_best_ranked)
+
     df_worst_ranked = get_ranking(False)
-    datatable_worst = dash_table.DataTable(
-        id='datatable-best',
-        columns=[{'name': col, 'id': col} for col in df_worst_ranked.columns],
-        data=df_worst_ranked.to_dict(orient='records'),
-        style_cell={'color': 'black', 'fontSize': 12, 'border': '1px solid black' },
-        style_header={'display': 'none', 'height': '1px', 'overflow': 'hidden'},
-        style_cell_conditional=[
-            {'if': {'column_id': 'index'},
-             'width': '20px',
-             'textAlign': 'center'},
-            {'if': {'column_id': 'score'},
-             'width': '20px',
-             'textAlign': 'center'},
-            {'if': {'column_id': 'question'},
-             'textAlign': 'left', 'max-width': '75px', 'overflow': 'hidden',
-        'textOverflow': 'ellipsis',}
-        ],
-        style_data={'backgroundColor': 'rgb(224, 224, 245)'},
-        tooltip_data=[
-            {
-                column: {'value': str(value), 'type': 'markdown'}
-                for column, value in row.items()
-            } for row in df_worst_ranked.to_dict('records')
-        ],
-        tooltip_duration=None
-    )
+    datatable_worst = get_datatable_layout(df_worst_ranked)
 
     ranking_layout = [
         html.Div([
@@ -274,6 +222,34 @@ def get_html_ranking(_):
 
     return ranking_layout
 
+def get_datatable_layout(df):
+    datatable = dash_table.DataTable(
+        id='datatable-best',
+        columns=[{'name': col, 'id': col} for col in df.columns],
+        data=df.to_dict(orient='records'),
+        style_cell={'color': 'black', 'fontSize': 12, 'border': '1px solid black' },
+        style_header={'display': 'none', 'height': '1px', 'overflow': 'hidden'},
+        style_cell_conditional=[
+            {'if': {'column_id': 'index'},
+             'width': '20px',
+             'textAlign': 'center'},
+            {'if': {'column_id': 'score'},
+             'width': '20px',
+             'textAlign': 'center'},
+            {'if': {'column_id': 'question'},
+             'textAlign': 'left', 'max-width': '75px', 'overflow': 'hidden',
+        'textOverflow': 'ellipsis',}
+        ],
+        style_data={'backgroundColor': 'rgb(224, 224, 245)'},
+        tooltip_data=[
+            {
+                column: {'value': str(value), 'type': 'markdown'}
+                for column, value in row.items()
+            } for row in df.to_dict('records')
+        ],
+        tooltip_duration=None
+    )
+    return datatable
 # score graphe
 def get_scores_graph():
     fig = go.Figure()

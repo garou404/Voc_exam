@@ -203,23 +203,26 @@ def get_dataframe(file) -> pd.DataFrame:
 
 def get_ranking(best):
     """
-
+    function to get the words with the most success
     :param best:
-    :return:
+    :return: return a dataframe of the five words with best ratio
     """
     df_words = get_dataframe(WORDS_FILE)
+    # Get only the words that have been answered thrice before
     df_words_asked = df_words.loc[df_words['asked_count'] >= 3]
     df_words_asked['ratio'] = df_words['right_answer_count']/df_words['asked_count']
     df_words_asked['score'] = df_words['right_answer_count'].astype(str)+'/'+df_words['asked_count'].astype(str)
 
-    if best:
+    if best: # Words with the most success
         df_words_asked = df_words_asked.sort_values(by=['ratio', 'asked_count'], ascending=[False, False])
         df_words_asked = df_words_asked.reset_index(drop=True).reset_index()
+        # Index col used to display rank
         df_words_asked['index'] = df_words_asked['index'] + 1
         return df_words_asked[['index', 'question', 'score']].head()
-    else:
+    else: # Words with the least success
         df_words_asked = df_words_asked.sort_values(by=['ratio', 'asked_count'], ascending=[True, False])
         df_words_asked = df_words_asked.reset_index(drop=True).reset_index()
+        # Index col used to display rank
         df_words_asked['index'] = df_words.loc[df_words['asked_count'] >= 3].shape[0] - df_words_asked['index']
         return df_words_asked[['index', 'question', 'score']].head()
 
