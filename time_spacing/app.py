@@ -24,7 +24,7 @@ app.layout = html.Div([
                         dcc.Graph(figure=callbacks.get_month_heatmap_graph(current=True))
                     ], className='col-md-6')
                 ], className='row'),
-                html.Div(className='row pb-5', id='words-ranking-container')
+                html.Div(className='row pb-5, mt-4', id='words-ranking-container')
             ], className='container-fluid')
         ], className='col-auto col-md-4 px-sm-2 px-0 bg-dark'),
         html.Div([

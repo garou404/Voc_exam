@@ -1,4 +1,5 @@
 from dash import html, callback, Input, Output, State, ctx, dcc, no_update, dash_table
+import dash_ag_grid as dag
 from voc_exam import *
 import plotly.express as px
 import plotly.graph_objects as go
@@ -207,7 +208,7 @@ def get_html_ranking(_):
         columns=[{'name': col, 'id': col} for col in df_best_ranked.columns],
         data=df_best_ranked.to_dict(orient='records'),
         style_cell={'color': 'black', 'fontSize': 12, 'border': '1px solid black' },
-        style_header={'display': 'none'},
+        style_header={'display': 'none', 'height': '1'},
         style_cell_conditional=[
             {'if': {'column_id': 'index'},
              'width': '20px',
@@ -234,7 +235,7 @@ def get_html_ranking(_):
         columns=[{'name': col, 'id': col} for col in df_worst_ranked.columns],
         data=df_worst_ranked.to_dict(orient='records'),
         style_cell={'color': 'black', 'fontSize': 12, 'border': '1px solid black' },
-        style_header={'display': 'none'},
+        style_header={'display': 'none', 'height': '1px', 'overflow': 'hidden'},
         style_cell_conditional=[
             {'if': {'column_id': 'index'},
              'width': '20px',
@@ -257,8 +258,18 @@ def get_html_ranking(_):
     )
 
     ranking_layout = [
-        html.Div([datatable_best], className='col-md-6'),
-        html.Div([datatable_worst], className='col-md-6')
+        html.Div([
+            html.Div([
+                html.Label(['Words with most success'])
+            ], className='row col text-light text-center'),
+            html.Div([datatable_best], className='row')
+        ], className='col-md-6'),
+        html.Div([
+            html.Div([
+                html.Label(['Words with least success'])
+            ], className='row col text-light text-center'),
+            html.Div([datatable_worst], className='row')
+        ], className='col-md-6')
     ]
 
     return ranking_layout

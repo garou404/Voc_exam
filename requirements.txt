@@ -4,3 +4,4 @@ Pillow
 jupyter
 matplotlib
 dash
+dash-ag-grid
