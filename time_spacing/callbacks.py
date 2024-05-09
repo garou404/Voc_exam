@@ -202,24 +202,63 @@ def get_quiz_layout(input_text, score, fr_to_eng):
 )
 def get_html_ranking(_):
     df_best_ranked = get_ranking(True)
-    print(df_best_ranked)
     datatable_best = dash_table.DataTable(
         id='datatable-best',
         columns=[{'name': col, 'id': col} for col in df_best_ranked.columns],
         data=df_best_ranked.to_dict(orient='records'),
-        style_cell={'color': 'black', 'fontSize':10},
+        style_cell={'color': 'black', 'fontSize': 12, 'border': '1px solid black' },
+        style_header={'display': 'none'},
+        style_cell_conditional=[
+            {'if': {'column_id': 'index'},
+             'width': '20px',
+             'textAlign': 'center'},
+            {'if': {'column_id': 'score'},
+             'width': '20px',
+             'textAlign': 'center'},
+            {'if': {'column_id': 'question'},
+             'textAlign': 'left', 'max-width': '75px', 'overflow': 'hidden',
+        'textOverflow': 'ellipsis',}
+        ],
+        style_data={'backgroundColor': 'rgb(224, 224, 245)'},
+        tooltip_data=[
+            {
+                column: {'value': str(value), 'type': 'markdown'}
+                for column, value in row.items()
+            } for row in df_best_ranked.to_dict('records')
+        ],
+        tooltip_duration=None
     )
     df_worst_ranked = get_ranking(False)
     datatable_worst = dash_table.DataTable(
         id='datatable-best',
         columns=[{'name': col, 'id': col} for col in df_worst_ranked.columns],
         data=df_worst_ranked.to_dict(orient='records'),
-        style_cell={'color': 'black', 'fontSize':10},
+        style_cell={'color': 'black', 'fontSize': 12, 'border': '1px solid black' },
+        style_header={'display': 'none'},
+        style_cell_conditional=[
+            {'if': {'column_id': 'index'},
+             'width': '20px',
+             'textAlign': 'center'},
+            {'if': {'column_id': 'score'},
+             'width': '20px',
+             'textAlign': 'center'},
+            {'if': {'column_id': 'question'},
+             'textAlign': 'left', 'max-width': '75px', 'overflow': 'hidden',
+        'textOverflow': 'ellipsis',}
+        ],
+        style_data={'backgroundColor': 'rgb(224, 224, 245)'},
+        tooltip_data=[
+            {
+                column: {'value': str(value), 'type': 'markdown'}
+                for column, value in row.items()
+            } for row in df_worst_ranked.to_dict('records')
+        ],
+        tooltip_duration=None
     )
 
     ranking_layout = [
-        html.Div([datatable_best], className='col'),
-        html.Div([datatable_worst], className='col')
+        html.Div([datatable_best], className='col-md-6'),
+        html.Div([datatable_worst], className='col-md-6')
     ]
 
     return ranking_layout

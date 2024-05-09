@@ -24,8 +24,8 @@ app.layout = html.Div([
                         dcc.Graph(figure=callbacks.get_month_heatmap_graph(current=True))
                     ], className='col-md-6')
                 ], className='row'),
-                html.Div(className='row m-1', id='words-ranking-container')
-            ], className='d-flex flex-column align-items-center align-items-sm-center px-3 pt-2 text-white min-vh-100')
+                html.Div(className='row pb-5', id='words-ranking-container')
+            ], className='container-fluid')
         ], className='col-auto col-md-4 px-sm-2 px-0 bg-dark'),
         html.Div([
             html.Div([
@@ -43,8 +43,8 @@ app.layout = html.Div([
                 ], className='col-6 mt-5 border border-primary rounded ')
             ], className='row justify-content-md-center pt-5')
         ], className='col')
-    ], className='row')
-], className='container-fluid')
+    ], className='row', style={'height': '100vh'})
+], className='container-fluid', style={'height': '100vh'})
 
 
 # Run the app

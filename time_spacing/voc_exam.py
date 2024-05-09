@@ -208,15 +208,20 @@ def get_ranking(best):
     :return:
     """
     df_words = get_dataframe(WORDS_FILE)
-    df_words_asked = df_words.loc[df_words['asked_count'] > 0]
+    df_words_asked = df_words.loc[df_words['asked_count'] >= 3]
     df_words_asked['ratio'] = df_words['right_answer_count']/df_words['asked_count']
     df_words_asked['score'] = df_words['right_answer_count'].astype(str)+'/'+df_words['asked_count'].astype(str)
-    df_words_asked.sort_values(by=['ratio', 'asked_count']).reset_index(drop=True)
-    print(df_words_asked.columns)
+
     if best:
-        return df_words_asked[['question', 'score']].head()
+        df_words_asked = df_words_asked.sort_values(by=['ratio', 'asked_count'], ascending=[False, False])
+        df_words_asked = df_words_asked.reset_index(drop=True).reset_index()
+        df_words_asked['index'] = df_words_asked['index'] + 1
+        return df_words_asked[['index', 'question', 'score']].head()
     else:
-        return df_words_asked[['question', 'score']].tail()
+        df_words_asked = df_words_asked.sort_values(by=['ratio', 'asked_count'], ascending=[True, False])
+        df_words_asked = df_words_asked.reset_index(drop=True).reset_index()
+        df_words_asked['index'] = df_words.loc[df_words['asked_count'] >= 3].shape[0] - df_words_asked['index']
+        return df_words_asked[['index', 'question', 'score']].head()
 
 def iteration(data, file_name, size):
     """
