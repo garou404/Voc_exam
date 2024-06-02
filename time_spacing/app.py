@@ -14,8 +14,12 @@ app.layout = html.Div([
         html.Div([
             html.Div([
                 html.Div([
-                    dcc.Graph(figure=callbacks.get_scores_graph())
-                ], className='mb-4'),
+                    html.Label([
+                        "Score of last five series"
+                    ], className='h4 text-center text-white w-100 mt-3'),
+                    dcc.Graph(figure=callbacks.get_scores_graph(), style={'margin': 'auto'})
+                ], className='mb-4 w-100'),
+                html.Hr(className='text-white'),
                 html.Div([
                     html.Div([
                         dcc.Graph(figure=callbacks.get_month_heatmap_graph(current=False)),
@@ -24,6 +28,7 @@ app.layout = html.Div([
                         dcc.Graph(figure=callbacks.get_month_heatmap_graph(current=True))
                     ], className='col-md-6')
                 ], className='row'),
+                html.Hr(className='text-white'),
                 html.Div(className='row pb-5, mt-4', id='words-ranking-container')
             ], className='container-fluid')
         ], className='col-auto col-md-4 px-sm-2 px-0 bg-dark'),
@@ -49,4 +54,4 @@ app.layout = html.Div([
 
 # Run the app
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8000)
+    app.run(host='0.0.0.0', port=8000, debug=True)

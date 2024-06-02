@@ -150,7 +150,10 @@ def save_series(df, df_temp, file):
     df = clean_data(file)
     df['date'] = upload_date(df)
     df.update(df_temp)
-
+    print('------------------------------------')
+    print(df_temp.to_string())
+    print('------------------------------------')
+    raise Exception('Not saving crazy guy')
     # Select rows index that need to go
     index_to_evict = df_temp.loc[df_temp['trash'] == True].index
     df_cleaned = df.drop(index_to_evict)

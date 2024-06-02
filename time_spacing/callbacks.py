@@ -31,6 +31,7 @@ df_series_score['score'] = df_series_score['serie_score']/df_series_score['serie
 def start_quiz(n_clicks, serie_size, quiz_starter_current_class):
     global df_quiz
     df_quiz = get_series(get_dataframe(WORDS_FILE), int(serie_size))
+    print(df_quiz)
     # Columns role is to let the program know which word is currently asked
     df_quiz['asked'] = False
     df_quiz['answered'] = False
@@ -77,7 +78,18 @@ def show_answer(n_clicks, question_value):
         answer = df_quiz.loc[condition, 'answer']
     else:
         answer = df_quiz.loc[condition, 'question']
-    return answer
+
+    if df_quiz.loc[condition, 'fr_to_eng'].values[0]:
+        fr_to_eng = 'fr to eng?'
+    else:
+        fr_to_eng = ''
+    test = [
+        html.Div(children=answer),
+        html.Div([
+            dcc.Checklist(['fr to eng?'], [fr_to_eng], id='fr-to-eng-checklist')
+        ], className='row')
+    ]
+    return test
 
 
 @callback(Output('quiz_layout', 'children'),
@@ -96,11 +108,14 @@ def display_next_question(n_clicks_right, n_clicks_wrong, pass_the_word, quiz_st
     global right_answer_count
     condition = (df_quiz['answered'] == False) & (df_quiz['asked'] == True)
 
-    # Change fr_to_eng col according to if the checklist is checked
-    if 'fr to eng?' in fr_to_eng_check:
-        df_quiz.loc[condition, 'fr_to_eng'] = True
+    if fr_to_eng_check is not None:
+        # Change fr_to_eng col according to if the checklist is checked
+        if 'fr to eng?' in fr_to_eng_check:
+            df_quiz.loc[condition, 'fr_to_eng'] = True
+        else:
+            df_quiz.loc[condition, 'fr_to_eng'] = False
     else:
-        df_quiz.loc[condition, 'fr_to_eng'] = False
+        print(df_quiz.loc[condition, 'fr_to_eng'])
 
     if pass_the_word != str(df_quiz.loc[condition, 'trash'].index.values[0]):
         # Update the word's row interval and the date according to the answer
@@ -177,10 +192,12 @@ def get_quiz_layout(input_text, score, fr_to_eng):
                 html.Div(id='hidden-trigger', className='d-none')
             ], className='row'),
             html.Div([
-                dcc.Checklist(['fr to eng?'], [fr_to_eng], id='fr-to-eng-checklist')
+
             ], className='row'),
             html.Div([
-                html.Div(id='answer-label', className='form-label'),
+                html.Div([
+                    dcc.Checklist(['fr to eng?'], [fr_to_eng], id='fr-to-eng-checklist')
+                ], id='answer-label', className='form-label'),
             ], className='row'),
         ], className='row'),
         html.Div([
@@ -304,7 +321,6 @@ def get_month_heatmap_graph(current):
     month = df_series_score['date'][df_series_score.shape[0] - 1].month
     if current == False:
         month = month - 1
-    print(month)
 
     # Get list of series date
     list_date = list(df_series_score.loc[df_series_score['date'].dt.month == month, 'date'])
